@@ -46,7 +46,13 @@ data Reference = Reference
 
 data Features = Features
   {
-     source :: Source,
+     sourceFrom :: Int,
+     sourceTo :: Int,
+     sourceComplement :: Bool,
+     sourceOrganism :: String,
+     sourceMoleculeType :: String,
+     sourceStrain :: String,
+     sourceDbXref :: String,
      genes :: [Gene] 
   }
   deriving (Show, Eq)
