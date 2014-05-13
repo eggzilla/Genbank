@@ -23,27 +23,132 @@ data Genbank = Genbank
     lineage :: String,
     references :: [Reference],
     comment :: String,
-    features :: [Feature],
+    features :: Features,
     contig :: String,
-    origin :: Origin
+    origin :: [OriginSlice]
   }
   deriving (Show, Eq)
 
 data Reference = Reference
   {
-     reference :: String
+     index :: Int,
+     baseFrom :: Int,
+     baseTo :: Int,
+     authors :: String,
+     title :: String,
+     journal :: String,
+     pubmedId :: String
   }
   deriving (Show, Eq)
 
-data Feature = Feature
+data Features = Features
   {
-     feature :: String
+     source :: Source,
+     genes :: [Gene] 
   }
   deriving (Show, Eq)
 
-data Origin = Origin
+data Feature  = Gene | RepeatRegion
+  deriving (Show, Eq)
+
+data RepeatRegion = RepeatRegion
   {
-     origin :: String
+     repeatFrom :: Int,
+     repeatTo :: Int,
+     note :: String
+  }
+  deriving (Show, Eq)
+
+data Gene = Gene
+  {
+     geneFrom :: Int,
+     geneTo :: Int,
+     complement :: Bool,
+     geneName :: String,
+     locusTag :: String,
+     geneSynonym :: [String],
+     geneDbXref :: [String],
+     feature :: [SubFeature]
+  }
+  deriving (Show, Eq)
+
+data SubFeature  = CDS | MiscFeature | NcRNA | MobileElement 
+  deriving (Show, Eq)
+
+data CDS = CDS
+  {
+     cdsFrom :: Int,
+     cdsTo :: Int,
+     cdsComplement :: Bool,
+     cdsGene :: String,
+     cdsLocusTag :: String,
+     cdsGeneSynonym :: [String],
+     ecNumber :: Maybe String, 
+     cdsFunction :: [String],
+     cdsGOterms :: [GOterm]
+     cdsNote :: String,
+     codonStart :: Int,
+     translationTable :: Int,
+     cdsProduct :: String,
+     proteinId :: String,
+     cdsDbXref :: [String],
+     translation :: String
+  }
+  deriving (Show, Eq)
+
+data GOterm = GOterm
+  {
+     goType :: String,
+     goId :: Int,
+     goName :: String
+  }
+  deriving (Show, Eq)
+
+data MiscFeature = MiscFeature
+  {
+     miscOrder :: [MiscFeatureOrder],
+     miscComplement :: Bool,
+     miscGene :: String,
+     miscLocusTag :: String,
+     miscGeneSynonym :: [String],
+     miscNote :: String,
+     miscDbXref :: [String]
+  }
+  deriving (Show, Eq)
+
+data MiscFeatureOrder = MiscFeatureOrder
+  {
+      miscFrom :: Int,
+      miscTo :: Int
+  }
+
+data NcRNA = NcRNA
+  {
+     ncRNAFrom :: Int,
+     ncRNATo :: Int,
+     ncRNAComplement :: Bool,
+     ncRNAGene :: String,
+     ncRNALocusTag :: String,
+     ncRNAGeneSynonym :: [String],
+     ncRNAClass :: String,
+     ncRNAProduct :: String,
+     ncRNADbXref :: [String]
+  }
+  deriving (Show, Eq)
+
+data MobileElement = MobileElement
+  {
+     mobileFrom :: Int,
+     mobileTo :: Int,
+     complement :: Bool,
+     mobileType :: String
+  }
+  deriving (Show, Eq)
+
+data OriginSlice = OriginSlice
+  {
+     originIndex :: Int,
+     originSequence :: String
   }
   deriving (Show, Eq)
 
