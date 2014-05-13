@@ -1,5 +1,6 @@
 -- | This module contains data structures for the genbankParser 
---   For more information on genbank consult: <>
+--   For more information on genbank consult: <http://www.ncbi.nlm.nih.gov/genbank/>
+--   Genbank record sample: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
 
 module Bio.GenbankParserData where
     
@@ -11,6 +12,7 @@ data Genbank = Genbank
     -- DNA/RNA/Protein
     moleculeType :: String,
     circular :: String,
+    division :: String,
     creationDate:: String,
     definition :: String,
     accession :: String,
@@ -37,7 +39,8 @@ data Reference = Reference
      authors :: String,
      title :: String,
      journal :: String,
-     pubmedId :: String
+     pubmedId :: Maybe String,
+     remark :: Maybe String
   }
   deriving (Show, Eq)
 
