@@ -12,7 +12,7 @@ import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language (emptyDef)    
 import Control.Monad
 import Data.List
-
+import Data.Maybe
 
 -- | Parse the input as Genbank datatype
 genParserGenbank :: GenParser Char st Genbank
@@ -64,11 +64,11 @@ genParserGenbank = do
   newline
   many1 space
   lineage <- manyTill (string "REFERENCE")
-  references <- many1 parseReferences
+  references <- many1 genParseReference
   string "COMMENT"
   many1 space
   lineage <- manyTill (string "FEATURES")
-  features <- parseFeatures
+  features <- genParseFeatures
   string "CONTIG"
   many1 space
   contig <- many1 (noneOf "\n")
@@ -80,9 +80,9 @@ genParserGenbank = do
   eof  
   return $ Genbank locus length moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism lineage references comment features contig origin 
 
--- | Parse the input as Genbank datatype
-genParseReferences :: GenParser Char st Reference
-genParseReferences = do
+-- | Parse the input as Reference datatype
+genParseReference :: GenParser Char st Reference
+genParseReference = do
   string "REFERENCE"
   many1 space
   index <- many1 (noneOf " ")
@@ -106,6 +106,52 @@ genParseReferences = do
   string "JOURNAL"
   journal <- choice [manyTill (string "REFERENCE")),(manyTill (string "FEATURES")]
   return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
+
+genParseFeatures :: GenParser Char st Features
+genParseFeatures = do
+  string "FEATURES"
+  many1 space
+  string "Location/Qualifiers"
+  many1 space
+  string "source"
+  many1 space
+  sourceCoordinates <- genParseCoordinates
+  many1 space
+  string "/organism=\""
+  organism <- many1 (noneOf "\"")
+  string "\""
+  newline
+  many1 space
+  string "/mol_type=\""
+  organism <- many1 (noneOf "\"")
+  string "\""
+  newline
+  many1 space
+  string "/strain=\""
+  organism <- many1 (noneOf "\"")
+  string "\""
+  newline
+  many1 space
+  string "/db_xref=\""
+  organism <- many1 (noneOf "\"")
+  string "\""
+  newline
+  genes <- many1 genParseGenes
+  return Features $ sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceDbXref genes
+
+genParseCoordinates :: GenParser Char st Coordinates
+  complement <- optionMaybe (string "complement(")
+  coordinateFrom <- many1 (noneOf ".")
+  many1 (oneOf ".><")
+  coordinateTo <- many1 (noneOf " )")
+  optional string ")"
+  newline
+  return Coordinates $ (readInt coordinateFrom) (readInt coordinateTo) (isComplement complement)
+  
+isComplement :: Maybe String -> Bool
+isComplement string
+  | (isJust string) = True
+  | otherwise = False
 
 -- | 
 parseGenbank input = parse genParserClustalw2Alignment "genParserClustalw2Alignment" input

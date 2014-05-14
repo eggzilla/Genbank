@@ -46,14 +46,20 @@ data Reference = Reference
 
 data Features = Features
   {
-     sourceFrom :: Int,
-     sourceTo :: Int,
-     sourceComplement :: Bool,
+     sourceCoordinates :: Coordinates,
      sourceOrganism :: String,
      sourceMoleculeType :: String,
      sourceStrain :: String,
      sourceDbXref :: String,
      genes :: [Gene] 
+  }
+  deriving (Show, Eq)
+
+data Coordinates = Coordinates
+  {
+    coordinatesFrom :: Int,
+    coordinatesTo :: Int,
+    complement :: Bool
   }
   deriving (Show, Eq)
 
