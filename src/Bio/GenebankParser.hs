@@ -17,7 +17,6 @@ import Data.List
 -- | Parse the input as Genbank datatype
 genParserGenbank :: GenParser Char st Genbank
 genParserGenbank = do
-
   string "LOCUS"
   many1 space
   locus <- many1 (noneOf " ")
@@ -80,6 +79,33 @@ genParserGenbank = do
   string "//"
   eof  
   return $ Genbank locus length moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism lineage references comment features contig origin 
+
+-- | Parse the input as Genbank datatype
+genParseReferences :: GenParser Char st Reference
+genParseReferences = do
+  string "REFERENCE"
+  many1 space
+  index <- many1 (noneOf " ")
+  many1 space
+  string "(bases"
+  many1 space 
+  baseFrom <- many1 (noneOf " ")
+  many1 space
+  string "to"
+  many1 space
+  baseTo  <- many1 (noneOf " ")
+  string ")"
+  newline
+  many1 space
+  string "AUTHORS"
+  many1 space
+  authors <- manyTill (string "TITLE")
+  string "TITLE"
+  many1 space
+  title <- manyTill (string "JOURNAL")
+  string "JOURNAL"
+  journal <- choice [manyTill (string "REFERENCE")),(manyTill (string "FEATURES")]
+  return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
 -- | 
 parseGenbank input = parse genParserClustalw2Alignment "genParserClustalw2Alignment" input
