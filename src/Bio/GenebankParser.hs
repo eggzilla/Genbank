@@ -136,10 +136,28 @@ genParseFeatures = do
   organism <- many1 (noneOf "\"")
   string "\""
   newline
-  genes <- many1 genParseGenes
+  genes <- many1 genParseFeature
   return Features $ sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceDbXref genes
 
+genParseFeature :: GenParser Char st Feature
+genParseFeature = do
+  feature <- choice [genParseRepeatRegion,genParseGene]
+  return feature
+
+genParseRepeatRegion :: GenParser Char st RepeatRegion
+genParseRepeatRegion = do
+  many1 space
+  string "repeat_region"
+  many1 space
+  repeatCoordinates <- genParseCoordinates
+  many1 space
+  string "/note=\""
+  repeatNote <- many1 (noneOf "\"")
+  string "\""
+  return RepeatRegion repeatCoordinates repeatNote
+
 genParseCoordinates :: GenParser Char st Coordinates
+genParseCoordinates = do
   complement <- optionMaybe (string "complement(")
   coordinateFrom <- many1 (noneOf ".")
   many1 (oneOf ".><")

@@ -68,9 +68,8 @@ data Feature  = Gene | RepeatRegion
 
 data RepeatRegion = RepeatRegion
   {
-     repeatFrom :: Int,
-     repeatTo :: Int,
-     note :: String
+     repeatCoordinates :: Coordinates,
+     repeatNote :: String
   }
   deriving (Show, Eq)
 
