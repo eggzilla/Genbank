@@ -179,6 +179,12 @@ genParseGene = do
   subFeatures <- many1 genParseSubFeature
   return Gene geneCoordinates geneName locusTag geneSynonym geneDbXref subFeatures
 
+genParseSubFeature :: GenParser Char st SubFeature
+genParseSubFeature = do
+  subFeature <- choice [genParseCDS,genParseMiscFeature,genParseNcRNA,genParseMobileElement]
+  return subFeature
+
+
 genParseDbXRef :: GenParser Char st DbXRef
 genParseDbXRef = do
   many1 space
