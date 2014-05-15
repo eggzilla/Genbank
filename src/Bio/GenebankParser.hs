@@ -154,7 +154,33 @@ genParseRepeatRegion = do
   string "/note=\""
   repeatNote <- many1 (noneOf "\"")
   string "\""
+  newline
   return RepeatRegion repeatCoordinates repeatNote
+
+genParseGene :: GenParser Char st Gene
+genParseGene = do
+  many1 space
+  string "repeat_region"
+  many1 space
+  geneCoordinates <- genParseCoordinates
+  many1 space
+  string "/gene=\""
+  geneName <- many1 (noneOf "\"")
+  string "\""
+  newline
+  many1 space
+  string "/locus_tag=\""
+  locusTag <- many1 (noneOf "\"")
+  string "\""
+  newline
+  many1 space
+  string "/gene_synonym=\""
+  geneSynonym <- many1 (noneOf "\"")
+  string "\""
+  newline
+  geneDbXref <- many1 genParseDbXRef
+  subFeatures <- many1 genParseSubFeature
+  return Gene geneCoordinates geneName locusTag geneSynonym geneDbXref subFeatures
 
 genParseCoordinates :: GenParser Char st Coordinates
 genParseCoordinates = do

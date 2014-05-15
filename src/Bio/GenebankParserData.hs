@@ -73,16 +73,21 @@ data RepeatRegion = RepeatRegion
   }
   deriving (Show, Eq)
 
+data DbXRef = DbXRef
+  {
+     db :: String,
+     ref :: String
+  }
+  deriving (Show, Eq)
+
 data Gene = Gene
   {
-     geneFrom :: Int,
-     geneTo :: Int,
-     complement :: Bool,
+     geneCoordinates :: Coordinates,
      geneName :: String,
      locusTag :: String,
      geneSynonym :: [String],
      geneDbXref :: [String],
-     feature :: [SubFeature]
+     subFeatures :: [SubFeature]
   }
   deriving (Show, Eq)
 
