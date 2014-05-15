@@ -50,7 +50,7 @@ data Features = Features
      sourceOrganism :: String,
      sourceMoleculeType :: String,
      sourceStrain :: String,
-     sourceDbXref :: String,
+     sourceDbXref :: [DbXRef],
      genes :: [Gene] 
   }
   deriving (Show, Eq)
@@ -86,7 +86,7 @@ data Gene = Gene
      geneName :: String,
      locusTag :: String,
      geneSynonym :: [String],
-     geneDbXref :: [String],
+     geneDbXref :: [DbXref],
      subFeatures :: [SubFeature]
   }
   deriving (Show, Eq)
@@ -96,9 +96,7 @@ data SubFeature  = CDS | MiscFeature | NcRNA | MobileElement
 
 data CDS = CDS
   {
-     cdsFrom :: Int,
-     cdsTo :: Int,
-     cdsComplement :: Bool,
+     cdsCoordinates :: Coordinates,
      cdsGene :: String,
      cdsLocusTag :: String,
      cdsGeneSynonym :: [String],
@@ -110,7 +108,7 @@ data CDS = CDS
      translationTable :: Int,
      cdsProduct :: String,
      proteinId :: String,
-     cdsDbXref :: [String],
+     cdsDbXref :: [DbXref],
      translation :: String
   }
   deriving (Show, Eq)
@@ -125,41 +123,31 @@ data GOterm = GOterm
 
 data MiscFeature = MiscFeature
   {
-     miscOrder :: [MiscFeatureOrder],
-     miscComplement :: Bool,
+     -- multiple misc features can be annotated in one entry, therefore the coordinate field is a list
+     miscCoordinates :: [Coordinates],
      miscGene :: String,
      miscLocusTag :: String,
      miscGeneSynonym :: [String],
      miscNote :: String,
-     miscDbXref :: [String]
+     miscDbXref :: [DbXref]
   }
   deriving (Show, Eq)
 
-data MiscFeatureOrder = MiscFeatureOrder
-  {
-      miscFrom :: Int,
-      miscTo :: Int
-  }
-
 data NcRNA = NcRNA
   {
-     ncRNAFrom :: Int,
-     ncRNATo :: Int,
-     ncRNAComplement :: Bool,
+     ncRNACoordinates :: Coordinates,
      ncRNAGene :: String,
      ncRNALocusTag :: String,
      ncRNAGeneSynonym :: [String],
      ncRNAClass :: String,
      ncRNAProduct :: String,
-     ncRNADbXref :: [String]
+     ncRNADbXref :: [DbXref]
   }
   deriving (Show, Eq)
 
 data MobileElement = MobileElement
   {
-     mobileFrom :: Int,
-     mobileTo :: Int,
-     complement :: Bool,
+     mobileCoordinates :: Coordinates,
      mobileType :: String
   }
   deriving (Show, Eq)

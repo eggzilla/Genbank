@@ -131,10 +131,7 @@ genParseFeatures = do
   organism <- many1 (noneOf "\"")
   string "\""
   newline
-  many1 space
-  string "/db_xref=\""
-  organism <- many1 (noneOf "\"")
-  string "\""
+  geneDbXref <- many1 genParseDbXRef
   newline
   genes <- many1 genParseFeature
   return Features $ sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceDbXref genes
@@ -181,6 +178,17 @@ genParseGene = do
   geneDbXref <- many1 genParseDbXRef
   subFeatures <- many1 genParseSubFeature
   return Gene geneCoordinates geneName locusTag geneSynonym geneDbXref subFeatures
+
+genParseDbXRef :: GenParser Char st DbXRef
+genParseDbXRef = do
+  many1 space
+  string "/db_xref=\""
+  db <- many1 (noneOf ":")
+  string ":"
+  ref <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return DbXRef $ db ref
 
 genParseCoordinates :: GenParser Char st Coordinates
 genParseCoordinates = do
