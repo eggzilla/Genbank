@@ -97,12 +97,13 @@ data SubFeature  = CDS | MiscFeature | NcRNA | MobileElement
 data CDS = CDS
   {
      cdsCoordinates :: Coordinates,
-     cdsGene :: String,
+     cdsGeneName :: String,
      cdsLocusTag :: String,
      cdsGeneSynonym :: [String],
-     ecNumber :: Maybe String, 
+     ecNumber :: [String], 
      cdsFunction :: [String],
-     cdsGOterms :: [GOterm]
+     experiment :: [String],
+     cdsGOterms :: [GOterm],
      cdsNote :: String,
      codonStart :: Int,
      translationTable :: Int,

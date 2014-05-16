@@ -12,6 +12,7 @@ import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language (emptyDef)    
 import Control.Monad
 import Data.List
+import Data.List.Split 
 import Data.Maybe
 
 -- | Parse the input as Genbank datatype
@@ -64,25 +65,25 @@ genParserGenbank = do
   newline
   many1 space
   lineage <- manyTill (string "REFERENCE")
-  references <- many1 genParseReference
+  references <- many1 genParserReference
   string "COMMENT"
   many1 space
   lineage <- manyTill (string "FEATURES")
-  features <- genParseFeatures
+  features <- genParserFeatures
   string "CONTIG"
   many1 space
   contig <- many1 (noneOf "\n")
   string "ORIGIN"
   many1 space
   newline
-  origin <- many1 parseOriginSlice
+  origin <- many1 parserOriginSlice
   string "//"
   eof  
   return $ Genbank locus length moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism lineage references comment features contig origin 
 
 -- | Parse the input as Reference datatype
-genParseReference :: GenParser Char st Reference
-genParseReference = do
+genParserReference :: GenParser Char st Reference
+genParserReference = do
   string "REFERENCE"
   many1 space
   index <- many1 (noneOf " ")
@@ -107,8 +108,8 @@ genParseReference = do
   journal <- choice [manyTill (string "REFERENCE")),(manyTill (string "FEATURES")]
   return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
-genParseFeatures :: GenParser Char st Features
-genParseFeatures = do
+genParserFeatures :: GenParser Char st Features
+genParserFeatures = do
   string "FEATURES"
   many1 space
   string "Location/Qualifiers"
@@ -116,74 +117,67 @@ genParseFeatures = do
   string "source"
   many1 space
   sourceCoordinates <- genParseCoordinates
-  many1 space
-  string "/organism=\""
-  organism <- many1 (noneOf "\"")
-  string "\""
-  newline
-  many1 space
-  string "/mol_type=\""
-  organism <- many1 (noneOf "\"")
-  string "\""
-  newline
-  many1 space
-  string "/strain=\""
-  organism <- many1 (noneOf "\"")
-  string "\""
-  newline
+  sourceOrganism <- parseStringField "organism"
+  sourceMoleculeType <- parseStringField "mol_type"
+  sourceStrain <- parseStringField "strain"
   geneDbXref <- many1 genParseDbXRef
   newline
   genes <- many1 genParseFeature
   return Features $ sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceDbXref genes
 
-genParseFeature :: GenParser Char st Feature
-genParseFeature = do
+genParserFeature :: GenParser Char st Feature
+genParserFeature = do
   feature <- choice [genParseRepeatRegion,genParseGene]
   return feature
 
-genParseRepeatRegion :: GenParser Char st RepeatRegion
-genParseRepeatRegion = do
+genParserRepeatRegion :: GenParser Char st RepeatRegion
+genParserRepeatRegion = do
   many1 space
   string "repeat_region"
   many1 space
   repeatCoordinates <- genParseCoordinates
-  many1 space
-  string "/note=\""
-  repeatNote <- many1 (noneOf "\"")
-  string "\""
-  newline
+  repeatNote <- parseStringField "note"
   return RepeatRegion repeatCoordinates repeatNote
 
-genParseGene :: GenParser Char st Gene
-genParseGene = do
+genParserGene :: GenParser Char st Gene
+genParserGene = do
   many1 space
-  string "repeat_region"
+  string "gene"
   many1 space
   geneCoordinates <- genParseCoordinates
-  many1 space
-  string "/gene=\""
-  geneName <- many1 (noneOf "\"")
-  string "\""
-  newline
-  many1 space
-  string "/locus_tag=\""
-  locusTag <- many1 (noneOf "\"")
-  string "\""
-  newline
-  many1 space
-  string "/gene_synonym=\""
-  geneSynonym <- many1 (noneOf "\"")
-  string "\""
-  newline
+  geneName <- parseStringField "gene"
+  locusTag <- parseStringField "locus_tag"
+  geneSynonym <- parseStringField "gene_synonym"
   geneDbXref <- many1 genParseDbXRef
   subFeatures <- many1 genParseSubFeature
-  return Gene geneCoordinates geneName locusTag geneSynonym geneDbXref subFeatures
+  return Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneDbXref subFeatures
 
-genParseSubFeature :: GenParser Char st SubFeature
-genParseSubFeature = do
+genParserSubFeature :: GenParser Char st SubFeature
+genParserSubFeature = do
   subFeature <- choice [genParseCDS,genParseMiscFeature,genParseNcRNA,genParseMobileElement]
   return subFeature
 
+genParserCDS :: GenParser Char st CDS
+genParserCDS = do
+  many1 space
+  string "CDS"
+  many1 space
+  cdsCoordinates <- genParseCoordinates
+  cdsGeneName <- parseStringField "gene"
+  cdsLocusTag <- parseStringField "locus_tag"
+  cdsGeneSynonym <- many1 parseStringField "gene_synonym"
+  ecNumber <- many1 (parseStringField "EC_number")
+  cdsFunction  <- many1 (parseStringField "function")
+  experiment <- many1 (parseStringField "experiment")
+  cdsGOterms <- many1 genParseGOterm
+  cdsNote <- parseStringField "note"
+  codonStart <- parseIntField "codon_start"
+  translationTable <- parseIntField "transl_table"
+  cdsProduct <- parseStringField "product"
+  proteinId <- parseStringField "protein_id"
+  geneDbXref <- many1 genParseDbXRef
+  translation <- parseStringField "translation"
+  return CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) (splitOn ";" cdsFunction) 
 
 genParseDbXRef :: GenParser Char st DbXRef
 genParseDbXRef = do
@@ -206,11 +200,6 @@ genParseCoordinates = do
   newline
   return Coordinates $ (readInt coordinateFrom) (readInt coordinateTo) (isComplement complement)
   
-isComplement :: Maybe String -> Bool
-isComplement string
-  | (isJust string) = True
-  | otherwise = False
-
 -- | 
 parseGenbank input = parse genParserClustalw2Alignment "genParserClustalw2Alignment" input
 
@@ -224,3 +213,27 @@ readDouble = read
 
 readInt :: String -> Int
 readInt = read
+
+-- | Parse a field containing a String         
+parseStringField :: String -> GenParser Char st String
+parseStringField fieldname = do
+  many1 space
+  string ("/" ++ fieldname ++ "=\"")
+  string <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return $ string    
+
+-- | Parse a field containing a Int          
+parseIntField :: String -> GenParser Char st Int
+parseIntField fieldname = do
+  many1 space
+  string ("/" ++ fieldname ++ "=")
+  int <- many1 (noneOf "\n")
+  newline
+  return $ (readInt int)
+
+isComplement :: Maybe String -> Bool
+isComplement string
+  | (isJust string) = True
+  | otherwise = False
