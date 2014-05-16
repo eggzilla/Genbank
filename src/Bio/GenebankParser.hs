@@ -192,6 +192,22 @@ genParserMiscFeature = do
   miscDbXref <- many1 genParseDbXRef
   return MiscFeature miscCoordinates miscGene miscLocusTag miscGeneSynonym miscNote miscDbXref
 
+genParseCoordinatesSet :: GenParser Char st [Coordinates]
+genParseCoordinatesSet = do
+  complement <- optionMaybe (string "complement(")
+  optional string "order("
+  coordinates <- many1 genParseCoordinates
+  optional string ")"
+  optional string ")"
+  newline
+  return [Coordinates] $ (setComplement complement coordinates)
+
+setComplement :: String -> [Coordinates] -> [Coordinates]
+setComplement complementString coordinates = coordinatesWithComplement
+  where complementBool = isComplement complementString
+        updateCoordinate complementBool coordinate= coordinate { complement = complementBool }
+        coordinatesWithComplement = map (updateCoordinate complementBool) coordinates
+
 genParseGOterm :: GenParser Char st GOterm
 genParseGOterm = do
   many1 space
@@ -222,6 +238,7 @@ genParseCoordinates = do
   coordinateFrom <- many1 (noneOf ".")
   many1 (oneOf ".><")
   coordinateTo <- many1 (noneOf " )")
+  optional string ","
   optional string ")"
   newline
   return Coordinates $ (readInt coordinateFrom) (readInt coordinateTo) (isComplement complement)
