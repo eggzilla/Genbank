@@ -208,6 +208,21 @@ setComplement complementString coordinates = coordinatesWithComplement
         updateCoordinate complementBool coordinate= coordinate { complement = complementBool }
         coordinatesWithComplement = map (updateCoordinate complementBool) coordinates
 
+genParserNcRNA  :: GenParser Char st NcRNA
+genParserNcRNA = do
+  many1 space
+  string "ncRNA"
+  many1 space
+  ncRNACoordinates <- genParseCoordinates
+  ncRNAGeneName <- parseStringField "gene"
+  ncRNALocusTag <- parseStringField "locus_tag"
+  ncRNAGeneSynonym <- many1 parseStringField "gene_synonym"
+  ncRNALocusTag <- parseStringField "ncRNA_class"
+  ncRNALocusTag <- parseStringField "product"
+  miscNote <- parseStringField "note"
+  miscDbXref <- many1 genParseDbXRef
+  return NcRNA ncRNACoordinates ncRNAGene ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNADbXref
+
 genParseGOterm :: GenParser Char st GOterm
 genParseGOterm = do
   many1 space
