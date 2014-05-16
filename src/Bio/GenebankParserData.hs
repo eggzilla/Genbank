@@ -126,7 +126,7 @@ data MiscFeature = MiscFeature
   {
      -- multiple misc features can be annotated in one entry, therefore the coordinate field is a list
      miscCoordinates :: [Coordinates],
-     miscGene :: String,
+     miscGeneName :: String,
      miscLocusTag :: String,
      miscGeneSynonym :: [String],
      miscNote :: String,

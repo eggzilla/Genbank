@@ -179,6 +179,19 @@ genParserCDS = do
   translation <- parseStringField "translation"
   return CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) (splitOn ";" cdsFunction) 
 
+genParserMiscFeature :: GenParser Char st MiscFeature
+genParserMiscFeature = do
+  many1 space
+  string "misc_feature"
+  many1 space
+  miscCoordinates <- genParseCoordinatesSet
+  miscGeneName <- parseStringField "gene"
+  miscLocusTag <- parseStringField "locus_tag"
+  miscGeneSynonym <- many1 parseStringField "gene_synonym"
+  miscNote <- parseStringField "note"
+  miscDbXref <- many1 genParseDbXRef
+  return MiscFeature miscCoordinates miscGene miscLocusTag miscGeneSynonym miscNote miscDbXref
+
 genParseGOterm :: GenParser Char st GOterm
 genParseGOterm = do
   many1 space
