@@ -217,11 +217,20 @@ genParserNcRNA = do
   ncRNAGeneName <- parseStringField "gene"
   ncRNALocusTag <- parseStringField "locus_tag"
   ncRNAGeneSynonym <- many1 parseStringField "gene_synonym"
-  ncRNALocusTag <- parseStringField "ncRNA_class"
-  ncRNALocusTag <- parseStringField "product"
-  miscNote <- parseStringField "note"
-  miscDbXref <- many1 genParseDbXRef
-  return NcRNA ncRNACoordinates ncRNAGene ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNADbXref
+  ncRNAClass <- parseStringField "ncRNA_class"
+  ncRNAProduct <- parseStringField "product"
+  ncRNANote <- parseStringField "note"
+  ncRNADbXref <- many1 genParseDbXRef
+  return NcRNA ncRNACoordinates ncRNAGene ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNADbXref
+
+genParserMobileElement:: GenParser Char st MobileElement
+genParserMobileElement = do
+  many1 space
+  string "mobile_element"
+  many1 space
+  mobileElementCoordinates <- genParseCoordinates
+  mobileType <- parseStringField "mobile_element_type"
+  return MobileElement 
 
 genParseGOterm :: GenParser Char st GOterm
 genParseGOterm = do
