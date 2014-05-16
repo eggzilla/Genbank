@@ -179,6 +179,19 @@ genParserCDS = do
   translation <- parseStringField "translation"
   return CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) (splitOn ";" cdsFunction) 
 
+genParseGOterm :: GenParser Char st GOterm
+genParseGOterm = do
+  many1 space
+  string "/GO_=\""
+  goType <- many1 (noneOf "=")
+  string "=\""
+  goId <- many1 (noneOf "-")
+  string "-"
+  goName <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return GOterm $ goType goId goName
+
 genParseDbXRef :: GenParser Char st DbXRef
 genParseDbXRef = do
   many1 space
