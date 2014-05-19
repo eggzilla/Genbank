@@ -51,7 +51,7 @@ data Features = Features
      sourceMoleculeType :: String,
      sourceStrain :: String,
      sourceDbXref :: [DbXRef],
-     genes :: [Gene] 
+     genes :: [Feature] 
   }
   deriving (Show, Eq)
 
@@ -63,15 +63,22 @@ data Coordinates = Coordinates
   }
   deriving (Show, Eq)
 
-data Feature  = Gene | RepeatRegion
-  deriving (Show, Eq)
-
-data RepeatRegion = RepeatRegion
+data Feature  = Gene {
+     geneCoordinates :: Coordinates,
+     geneName :: String,
+     locusTag :: String,
+     geneSynonym :: [String],
+     geneDbXref :: [DbXRef],
+     subFeatures :: [SubFeature]
+  }
+  | RepeatRegion
   {
      repeatCoordinates :: Coordinates,
      repeatNote :: String
   }
   deriving (Show, Eq)
+
+
 
 data DbXRef = DbXRef
   {
@@ -80,21 +87,7 @@ data DbXRef = DbXRef
   }
   deriving (Show, Eq)
 
-data Gene = Gene
-  {
-     geneCoordinates :: Coordinates,
-     geneName :: String,
-     locusTag :: String,
-     geneSynonym :: [String],
-     geneDbXref :: [DbXref],
-     subFeatures :: [SubFeature]
-  }
-  deriving (Show, Eq)
-
-data SubFeature  = CDS | MiscFeature | NcRNA | MobileElement 
-  deriving (Show, Eq)
-
-data CDS = CDS
+data SubFeature  = CDS 
   {
      cdsCoordinates :: Coordinates,
      cdsGeneName :: String,
@@ -109,20 +102,10 @@ data CDS = CDS
      translationTable :: Int,
      cdsProduct :: String,
      proteinId :: String,
-     cdsDbXref :: [DbXref],
+     cdsDbXref :: [DbXRef],
      translation :: String
   }
-  deriving (Show, Eq)
-
-data GOterm = GOterm
-  {
-     goType :: String,
-     goId :: Int,
-     goName :: String
-  }
-  deriving (Show, Eq)
-
-data MiscFeature = MiscFeature
+  | MiscFeature
   {
      -- multiple misc features can be annotated in one entry, therefore the coordinate field is a list
      miscCoordinates :: [Coordinates],
@@ -130,11 +113,9 @@ data MiscFeature = MiscFeature
      miscLocusTag :: String,
      miscGeneSynonym :: [String],
      miscNote :: String,
-     miscDbXref :: [DbXref]
+     miscDbXref :: [DbXRef]
   }
-  deriving (Show, Eq)
-
-data NcRNA = NcRNA
+  | NcRNA
   {
      ncRNACoordinates :: Coordinates,
      ncRNAGene :: String,
@@ -142,11 +123,9 @@ data NcRNA = NcRNA
      ncRNAGeneSynonym :: [String],
      ncRNAClass :: String,
      ncRNAProduct :: String,
-     ncRNADbXref :: [DbXref]
+     ncRNADbXref :: [DbXRef]
   }
-  deriving (Show, Eq)
-
-data MobileElement = MobileElement
+  | MobileElement
   {
      mobileCoordinates :: Coordinates,
      mobileType :: String
@@ -160,4 +139,10 @@ data OriginSlice = OriginSlice
   }
   deriving (Show, Eq)
 
-
+data GOterm = GOterm
+  {
+     goType :: String,
+     goId :: Int,
+     goName :: String
+  }
+  deriving (Show, Eq)
