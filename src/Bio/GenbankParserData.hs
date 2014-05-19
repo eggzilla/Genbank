@@ -35,9 +35,9 @@ data Reference = Reference
      index :: Int,
      baseFrom :: Int,
      baseTo :: Int,
-     authors :: String,
-     title :: String,
-     journal :: String,
+     authors :: [String],
+     title :: [String],
+     journal :: [String],
      pubmedId :: Maybe String,
      remark :: Maybe String
   }
@@ -76,8 +76,6 @@ data Feature  = Gene {
      repeatNote :: String
   }
   deriving (Show, Eq)
-
-
 
 data DbXRef = DbXRef
   {

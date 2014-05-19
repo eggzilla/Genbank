@@ -83,11 +83,11 @@ genParserGenbank = do
 genParserOriginSlice :: GenParser Char st OriginSlice
 genParserOriginSlice = do
   many1 space
-  index <- many1 (noneOf " ")
+  originIndex <- many1 (noneOf " ")
   many1 space
-  journal <- many1 (noneOf "\n")
+  originSequence <- many1 (noneOf "\n")
   newline
-  return $ OriginSlice 
+  return $ OriginSlice (readInt originIndex) originSequence
 
 -- | Parse the input as Reference datatype
 genParserReference :: GenParser Char st Reference
@@ -108,12 +108,12 @@ genParserReference = do
   many1 space
   string "AUTHORS"
   many1 space
-  authors <- manyTill (string "TITLE")
+  authors <- endBy (string "\n") (string "TITLE")
   string "TITLE"
   many1 space
-  title <- manyTill (string "JOURNAL")
+  title <- endBy (string "\n") (string "JOURNAL")
   string "JOURNAL"
-  journal <- choice [(manyTill (string "REFERENCE")),(manyTill (string "FEATURES"))]
+  journal <- choice [(endBy (string "\n") (string "REFERENCE")), (endBy (string "\n") (string "FEATURES"))]
   return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
 genParserFeatures :: GenParser Char st Features
