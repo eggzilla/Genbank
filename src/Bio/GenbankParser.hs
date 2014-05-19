@@ -58,17 +58,15 @@ genParserGenbank = do
   string "SOURCE"
   many1 space
   source <- many1 (noneOf "\n")
+  newline
   many1 space
   string "ORGANISM"
   many1 space
-  organism <- many1 (noneOf "\n")
-  newline
-  many1 space
-  lineage <- manyTill (string "REFERENCE")
+  organism <- many1 (noneOf ".")
   references <- many1 genParserReference
   string "COMMENT"
   many1 space
-  lineage <- manyTill (string "FEATURES")
+  comment <- endBy (string "\n") (string "FEATURES")
   features <- genParserFeatures
   string "CONTIG"
   many1 space
@@ -79,7 +77,7 @@ genParserGenbank = do
   origin <- many1 genParserOriginSlice
   string "//"
   eof  
-  return $ Genbank locus length moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism lineage references comment features contig origin 
+  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features contig origin 
 
 -- | Parse the input as OriginSlice datatype
 genParserOriginSlice :: GenParser Char st OriginSlice
