@@ -29,11 +29,10 @@ source-repository this
 
 library
   -- Modules exported by the library.
-  exposed-modules:   Bio.GenbankParser
-  other-modules:     Bio.GenbankParserData
- 
+  exposed-modules:   Bio.GenbankParser, Bio.GenbankParserData
+  
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.5 && <5, parsec
+  build-depends:       base >=4.5 && <5, parsec, split
   
   -- Directories containing source files.
   hs-source-dirs:      src
