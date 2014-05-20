@@ -23,7 +23,7 @@ data Genbank = Genbank
     source :: String,
     organism :: String,
     references :: [Reference],
-    comment :: [String],
+    comment :: String,
     features :: Features,
     contig :: String,
     origin :: [OriginSlice]
@@ -35,9 +35,9 @@ data Reference = Reference
      index :: Int,
      baseFrom :: Int,
      baseTo :: Int,
-     authors :: [String],
-     title :: [String],
-     journal :: [String],
+     authors :: String,
+     title :: String,
+     journal :: String,
      pubmedId :: Maybe String,
      remark :: Maybe String
   }
@@ -48,7 +48,8 @@ data Features = Features
      sourceCoordinates :: Coordinates,
      sourceOrganism :: String,
      sourceMoleculeType :: String,
-     sourceStrain :: String,
+     sourceStrain :: Maybe String,
+     sourceSubStrain :: Maybe String,
      sourceDbXref :: [DbXRef],
      genes :: [Feature] 
   }
@@ -84,7 +85,7 @@ data DbXRef = DbXRef
   }
   deriving (Show, Eq)
 
-data SubFeature  = CDS 
+data SubFeature = CDS 
   {
      cdsCoordinates :: Coordinates,
      cdsGeneName :: String,
@@ -94,7 +95,7 @@ data SubFeature  = CDS
      cdsFunction :: [String],
      experiment :: [String],
      cdsGOterms :: [GOterm],
-     cdsNote :: String,
+     cdsNote :: Maybe String,
      codonStart :: Int,
      translationTable :: Int,
      cdsProduct :: String,
