@@ -62,7 +62,7 @@ data Coordinates = Coordinates
   }
   deriving (Show, Eq)
 
-data Feature  = Gene {
+data Feature = Gene {
      geneCoordinates :: Coordinates,
      geneName :: String,
      locusTag :: String,
@@ -115,11 +115,12 @@ data SubFeature  = CDS
   | NcRNA
   {
      ncRNACoordinates :: Coordinates,
-     ncRNAGene :: String,
+     ncRNAGeneName :: String,
      ncRNALocusTag :: String,
      ncRNAGeneSynonym :: [String],
      ncRNAClass :: String,
      ncRNAProduct :: String,
+     ncRNANote :: String,
      ncRNADbXref :: [DbXRef]
   }
   | MobileElement
@@ -139,7 +140,7 @@ data OriginSlice = OriginSlice
 data GOterm = GOterm
   {
      goType :: String,
-     goId :: Int,
+     goId :: String,
      goName :: String
   }
   deriving (Show, Eq)
