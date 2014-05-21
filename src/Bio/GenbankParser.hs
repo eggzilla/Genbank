@@ -60,13 +60,8 @@ genParserGenbank = do
   source <- many1 (noneOf "\n")
   newline
   many1 space
---  string "ORGANISM"
---  many1 space
---  organism <- endBy field (string "REFERENCE")
   organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
-  --string "COMMENT"
-  --comment <- endBy (string "\n") (string "FEATURES")
   comment <- genParserField "COMMENT" "FEATURES"
   features <- genParserFeatures
   string "CONTIG"
@@ -114,13 +109,8 @@ genParserReference = do
   string ")"
   newline
   many1 space
-  --string "AUTHORS"
-  --authors <- genParserField "AUTHORS" "TITLE"
   authors <- choice [(genParserField "AUTHORS" "TITLE"), (genParserField "CONSRTM" "TITLE")]
-  --string "TITLE"
-  --many1 space
   title <- genParserField "TITLE" "JOURNAL"
-  --string "JOURNAL"
   journal <- choice [(try (genParserField "JOURNAL" "REFERENCE")), (genParserField "JOURNAL" "COMMENT")]
   return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
@@ -169,8 +159,6 @@ genParserGene = do
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"
   geneDbXref <- many1 (try genParseDbXRef)
-  --subFeatures <- many genParserSubFeature
-  --subFeatures <- choice [(many1 genParserSubFeature),test1,test2]
   subFeatures <- many (genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
   return $ Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneDbXref subFeatures
@@ -183,7 +171,6 @@ repeatAhead= do
 
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
-  --subFeature <- choice [(try genParserCDS),(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement)]
   subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS)]
   return subFeature
 
@@ -295,11 +282,10 @@ genParseCoordinates = do
   optional (many space)
   complement <- optionMaybe (string "complement(")
   coordinateFrom <- many1 (noneOf ".")
-  many1 (oneOf ".><")
-  coordinateTo <- many1 (noneOf " )\n")
-  --optional (string ",\n")
+  (oneOf ".><")
+  (oneOf ".><")
+  coordinateTo <- many1 (noneOf " ,)\n")
   optional (string ",")
-  --optional (string ")")
   return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) (isComplement complement)
   
 -- | 
