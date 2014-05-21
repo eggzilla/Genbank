@@ -122,6 +122,7 @@ data SubFeature = CDS
      ncRNAClass :: String,
      ncRNAProduct :: String,
      ncRNANote :: Maybe String,
+     ncRNAFunction :: Maybe String,
      ncRNADbXref :: [DbXRef]
   }
   | MobileElement

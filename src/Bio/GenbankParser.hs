@@ -216,8 +216,9 @@ genParserNcRNA = do
   ncRNAClass <- parseStringField "ncRNA_class"
   ncRNAProduct <- parseStringField "product"
   ncRNANote <- optionMaybe (parseStringField "note")
+  ncRNAFunction <- optionMaybe (parseStringField "function")
   ncRNADbXref <- many1 (try genParseDbXRef)
-  return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNADbXref
+  return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNAFunction ncRNADbXref
 
 genParserMobileElement :: GenParser Char st SubFeature
 genParserMobileElement = do
