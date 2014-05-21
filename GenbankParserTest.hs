@@ -11,7 +11,6 @@ import System.Environment
 import Data.List
 import Bio.GenbankParser
 import System.Directory
-import System.Cmd
 import Control.Monad    
 import Data.Either
 import Data.Either.Unwrap
