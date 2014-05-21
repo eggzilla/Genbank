@@ -196,10 +196,10 @@ genParserCDS = do
   cdsPseudo <- optionMaybe (try parsePseudo)
   codonStart <- parseIntField "codon_start"
   translationTable <- parseIntField "transl_table"
-  cdsProduct <- parseStringField "product"
-  proteinId <- parseStringField "protein_id"
+  cdsProduct <- optionMaybe (try (parseStringField "product"))
+  proteinId <- optionMaybe (try (parseStringField "protein_id"))
   geneDbXref <- many1 (try genParseDbXRef)
-  translation <- parseStringField "translation"
+  translation <- optionMaybe (try (parseStringField "translation"))
   return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationTable cdsProduct proteinId geneDbXref translation
 
 genParserMiscFeature :: GenParser Char st SubFeature

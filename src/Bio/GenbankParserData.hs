@@ -101,10 +101,10 @@ data SubFeature = CDS
      cdsPseudo :: Bool,
      codonStart :: Int,
      translationTable :: Int,
-     cdsProduct :: String,
-     proteinId :: String,
+     cdsProduct :: Maybe String,
+     proteinId :: Maybe String,
      cdsDbXref :: [DbXRef],
-     translation :: String
+     translation :: Maybe String
   }
   | MiscFeature
   {
