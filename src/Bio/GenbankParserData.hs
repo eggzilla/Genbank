@@ -69,6 +69,7 @@ data Feature = Gene {
      locusTag :: String,
      geneSynonym :: [String],
      geneNote :: Maybe String,
+     genePseudo :: Bool,
      geneDbXref :: [DbXRef],
      subFeatures :: [SubFeature]
   }
@@ -97,6 +98,7 @@ data SubFeature = CDS
      experiment :: [String],
      cdsGOterms :: [GOterm],
      cdsNote :: Maybe String,
+     cdsPseudo :: Bool,
      codonStart :: Int,
      translationTable :: Int,
      cdsProduct :: String,

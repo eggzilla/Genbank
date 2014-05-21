@@ -153,11 +153,18 @@ genParserGene = do
   geneName <- parseStringField "gene"
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"
-  geneNote <- optionMaybe (parseStringField "note")
+  geneNote <- optionMaybe (try (parseStringField "note"))
+  genePseudo <- optionMaybe (try parsePseudo)
   geneDbXref <- many1 (try genParseDbXRef)
   subFeatures <- many (genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
-  return $ Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneDbXref subFeatures
+  return $ Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneNote (isJust genePseudo) geneDbXref subFeatures
+
+parsePseudo :: GenParser Char st Char
+parsePseudo = do
+  many1 space
+  pseudo <- string "/pseudo"
+  newline
 
 geneAhead = do
   lookAhead (string "     gene")
@@ -186,13 +193,14 @@ genParserCDS = do
   experiment <- many (try (parseStringField "experiment"))
   cdsGOterms <- many (try genParseGOterm)
   cdsNote <- optionMaybe (try (parseStringField "note"))
+  cdsPseudo <- optionMaybe (try parsePseudo)
   codonStart <- parseIntField "codon_start"
   translationTable <- parseIntField "transl_table"
   cdsProduct <- parseStringField "product"
   proteinId <- parseStringField "protein_id"
   geneDbXref <- many1 (try genParseDbXRef)
   translation <- parseStringField "translation"
-  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment cdsGOterms cdsNote codonStart translationTable cdsProduct proteinId geneDbXref translation
+  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationTable cdsProduct proteinId geneDbXref translation
 
 genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
