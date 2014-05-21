@@ -212,7 +212,7 @@ genParserNcRNA = do
   ncRNACoordinates <- genParserCoordinates
   ncRNAGeneName <- parseStringField "gene"
   ncRNALocusTag <- parseStringField "locus_tag"
-  ncRNAGeneSynonym <- many1 (parseStringField "gene_synonym")
+  ncRNAGeneSynonym <- many1 (try (parseStringField "gene_synonym"))
   ncRNAClass <- parseStringField "ncRNA_class"
   ncRNAProduct <- parseStringField "product"
   ncRNANote <- optionMaybe (parseStringField "note")
@@ -269,6 +269,7 @@ genParserComplementOrder = do
 genParserForwardCoordinates :: GenParser Char st Coordinates
 genParserForwardCoordinates = do
   --coordinateFrom <- many1 (noneOf ".")
+  optional (oneOf "<>")
   coordinateFrom <- many1 digit
   (oneOf ".><")
   (oneOf ".><")
@@ -281,6 +282,7 @@ genParserComplementCoordinates :: GenParser Char st Coordinates
 genParserComplementCoordinates = do
   string "complement("
   --coordinateFrom <- many1 (noneOf ".")
+  optional (oneOf "<>")
   coordinateFrom <- many1 digit
   (oneOf ".><")
   (oneOf ".><")
