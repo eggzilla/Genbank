@@ -88,8 +88,8 @@ data DbXRef = DbXRef
   deriving (Show, Eq)
 
 data SubFeature = CDS 
-  {
-     cdsCoordinates :: Coordinates,
+  {  --joined cds have more than one element in the coordinate list
+     cdsCoordinates :: [Coordinates],
      cdsGeneName :: String,
      cdsLocusTag :: String,
      cdsGeneSynonym :: [String],

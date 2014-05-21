@@ -181,7 +181,7 @@ genParserCDS :: GenParser Char st SubFeature
 genParserCDS = do
   string "     CDS"
   many1 space
-  cdsCoordinates <- genParserCoordinates
+  cdsCoordinates <- (genParserCoordinatesSet "join")
   cdsGeneName <- parseStringField "gene"
   cdsLocusTag <- parseStringField "locus_tag"
   cdsGeneSynonym <- parseStringField "gene_synonym"
@@ -206,7 +206,7 @@ genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
   string "     misc_feature"
   many1 space
-  miscCoordinates <- genParserCoordinatesSet
+  miscCoordinates <- (genParserCoordinatesSet "order")
   miscGeneName <- parseStringField "gene"
   miscLocusTag <- parseStringField "locus_tag"
   miscGeneSynonym <- parseStringField "gene_synonym"
@@ -242,20 +242,21 @@ genParserCoordinates = do
   coordinates <- choice [(try genParserForwardCoordinates),(try genParserComplementCoordinates)]
   return $ coordinates
 
-genParserCoordinatesSet :: GenParser Char st [Coordinates]
-genParserCoordinatesSet = do
-  coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try genParserForwardOrder),(try genParserComplementOrder)]
+genParserCoordinatesSet :: String -> GenParser Char st [Coordinates]
+genParserCoordinatesSet prefix = do
+  coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try (genParserForwardPrefix prefix)),(try (genParserComplementPrefix prefix))]
   return coordinates
 
-genParserForwardOrder :: GenParser Char st [Coordinates]
-genParserForwardOrder = do
-  string "order("
-  coordinates <- many1 genParserForwardOrderCoordinates
+-- | Parsing of coordinate lists with prefix e.g. order, join
+genParserForwardPrefix :: String -> GenParser Char st [Coordinates]
+genParserForwardPrefix prefix = do
+  string (prefix ++ "(")
+  coordinates <- many1 genParserForwardPrefixCoordinates
   string ")"
   return $ coordinates
 
-genParserForwardOrderCoordinates :: GenParser Char st Coordinates
-genParserForwardOrderCoordinates = do
+genParserForwardPrefixCoordinates :: GenParser Char st Coordinates
+genParserForwardPrefixCoordinates = do
   --coordinateFrom <- many1 (noneOf ".")
   coordinateFrom <- many1 digit
   (oneOf ".><")
@@ -266,11 +267,13 @@ genParserForwardOrderCoordinates = do
   optional (many1 (string " "))
   return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
 
-genParserComplementOrder :: GenParser Char st [Coordinates]
-genParserComplementOrder = do
+
+-- | Parseing of coordinate complement coordinate lists with prefix
+genParserComplementPrefix :: String -> GenParser Char st [Coordinates]
+genParserComplementPrefix prefix = do
   string "complement("
-  string "order("
-  coordinates <- many1 genParserForwardOrderCoordinates
+  string (prefix ++ "(")
+  coordinates <- many1 genParserForwardPrefixCoordinates
   string ")"
   string ")"
   newline
