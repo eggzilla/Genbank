@@ -257,11 +257,12 @@ genParserForwardPrefix prefix = do
 
 genParserForwardPrefixCoordinates :: GenParser Char st Coordinates
 genParserForwardPrefixCoordinates = do
-  --coordinateFrom <- many1 (noneOf ".")
+  optional (oneOf "><")  
   coordinateFrom <- many1 digit
-  (oneOf ".><")
-  (oneOf ".><")
-  --coordinateTo <- many1 (noneOf ",)\n")
+  optional (oneOf "><")
+  string "."
+  string "."
+  optional (oneOf "><")
   coordinateTo <- many1 digit
   optional (choice [(try (string ",\n")),(try (string ","))])
   optional (many1 (string " "))
@@ -281,25 +282,25 @@ genParserComplementPrefix prefix = do
 
 genParserForwardCoordinates :: GenParser Char st Coordinates
 genParserForwardCoordinates = do
-  --coordinateFrom <- many1 (noneOf ".")
-  optional (oneOf "<>")
+  optional (oneOf "><")
   coordinateFrom <- many1 digit
-  (oneOf ".><")
-  (oneOf ".><")
-  --coordinateTo <- many1 (noneOf "\n")
-  coordinateTo <- many1 (noneOf "\n")
+  optional (oneOf "><")
+  string "."
+  string "."
+  optional (oneOf "><")
+  coordinateTo <- many1 digit
   newline
   return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) False
 
 genParserComplementCoordinates :: GenParser Char st Coordinates
 genParserComplementCoordinates = do
   string "complement("
-  --coordinateFrom <- many1 (noneOf ".")
-  optional (oneOf "<>")
+  optional (oneOf "><")
   coordinateFrom <- many1 digit
-  (oneOf ".><")
-  (oneOf ".><")
-  --coordinateTo <- many1 (noneOf ")")
+  optional (oneOf "><")
+  string "."
+  string "."
+  optional (oneOf "><")
   coordinateTo <- many1 digit
   string ")"
   newline
