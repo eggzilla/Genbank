@@ -224,8 +224,8 @@ genParserNcRNA = do
   ncRNAGeneSynonym <- many1 (try (parseStringField "gene_synonym"))
   ncRNAClass <- parseStringField "ncRNA_class"
   ncRNAProduct <- parseStringField "product"
-  ncRNANote <- optionMaybe (parseStringField "note")
-  ncRNAFunction <- optionMaybe (parseStringField "function")
+  ncRNANote <- optionMaybe (try (parseStringField "note"))
+  ncRNAFunction <- optionMaybe (try (parseStringField "function"))
   ncRNADbXref <- many1 (try genParseDbXRef)
   return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNAFunction ncRNADbXref
 
