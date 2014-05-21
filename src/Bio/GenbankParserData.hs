@@ -68,6 +68,7 @@ data Feature = Gene {
      geneName :: String,
      locusTag :: String,
      geneSynonym :: [String],
+     geneNote :: Maybe String,
      geneDbXref :: [DbXRef],
      subFeatures :: [SubFeature]
   }

@@ -153,6 +153,7 @@ genParserGene = do
   geneName <- parseStringField "gene"
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"
+  geneNote <- optionMaybe (parseStringField "note")
   geneDbXref <- many1 (try genParseDbXRef)
   subFeatures <- many (genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
