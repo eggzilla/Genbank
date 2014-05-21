@@ -123,8 +123,7 @@ genParserFeatures = do
   many1 space
   string "source"
   many1 space
-  sourceCoordinates <- genParseCoordinates
-  newline
+  sourceCoordinates <- genParserCoordinates
   sourceOrganism <- parseStringField "organism"
   sourceMoleculeType <- parseStringField "mol_type"
   sourceStrain <- optionMaybe (parseStringField "strain")
@@ -142,19 +141,15 @@ genParserRepeatRegion :: GenParser Char st Feature
 genParserRepeatRegion = do
   string "     repeat_region"
   many1 space
-  repeatCoordinates <- genParseCoordinates
-  optional (string ")")
-  newline
-  repeatNote <- parseStringField "note"
+  repeatCoordinates <- genParserCoordinates
+  repeatNote <- optionMaybe (parseStringField "note")
   return $ RepeatRegion repeatCoordinates repeatNote
 
 genParserGene :: GenParser Char st Feature
 genParserGene = do
   string "     gene"
   many1 space
-  geneCoordinates <- genParseCoordinates
-  optional (string ")")
-  newline
+  geneCoordinates <- genParserCoordinates
   geneName <- parseStringField "gene"
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"
@@ -178,16 +173,15 @@ genParserCDS :: GenParser Char st SubFeature
 genParserCDS = do
   string "     CDS"
   many1 space
-  cdsCoordinates <- genParseCoordinates
-  optional (string ")")
-  newline
+  cdsCoordinates <- genParserCoordinates
   cdsGeneName <- parseStringField "gene"
   cdsLocusTag <- parseStringField "locus_tag"
   cdsGeneSynonym <- parseStringField "gene_synonym"
-  cdsFunction  <- many (try (parseStringField "function"))
   ecNumber <- many (try (parseStringField "EC_number"))
+  cdsFunction  <- many (try (parseStringField "function"))
+  --ecNumber <- many (try (parseStringField "EC_number"))
   --todo: functions and ec are sometimes swaped
-  many (try (parseStringField "function"))
+  --many (try (parseStringField "function"))
   experiment <- many (try (parseStringField "experiment"))
   cdsGOterms <- many (try genParseGOterm)
   cdsNote <- optionMaybe (try (parseStringField "note"))
@@ -203,11 +197,11 @@ genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
   string "     misc_feature"
   many1 space
-  miscCoordinates <- genParseCoordinatesSet
+  miscCoordinates <- genParserCoordinatesSet
   miscGeneName <- parseStringField "gene"
   miscLocusTag <- parseStringField "locus_tag"
   miscGeneSynonym <- parseStringField "gene_synonym"
-  miscNote <- parseStringField "note"
+  miscNote <- optionMaybe (try (parseStringField "note"))
   miscDbXref <- many1 (try genParseDbXRef)
   return $ MiscFeature miscCoordinates miscGeneName miscLocusTag (splitOn ";" miscGeneSynonym) miscNote miscDbXref
 
@@ -215,15 +209,13 @@ genParserNcRNA  :: GenParser Char st SubFeature
 genParserNcRNA = do
   string "     ncRNA"
   many1 space
-  ncRNACoordinates <- genParseCoordinates
-  optional (string ")")
-  newline
+  ncRNACoordinates <- genParserCoordinates
   ncRNAGeneName <- parseStringField "gene"
   ncRNALocusTag <- parseStringField "locus_tag"
   ncRNAGeneSynonym <- many1 (parseStringField "gene_synonym")
   ncRNAClass <- parseStringField "ncRNA_class"
   ncRNAProduct <- parseStringField "product"
-  ncRNANote <- parseStringField "note"
+  ncRNANote <- optionMaybe (parseStringField "note")
   ncRNADbXref <- many1 (try genParseDbXRef)
   return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNADbXref
 
@@ -231,26 +223,76 @@ genParserMobileElement :: GenParser Char st SubFeature
 genParserMobileElement = do
   string "     mobile_element"
   many1 space
-  mobileElementCoordinates <- genParseCoordinates
-  optional (string ")")
-  newline
+  mobileElementCoordinates <- genParserCoordinates
   mobileType <- parseStringField "mobile_element_type"
   return $ MobileElement mobileElementCoordinates mobileType
 
-genParseCoordinatesSet :: GenParser Char st [Coordinates]
-genParseCoordinatesSet = do
-  complement <- optionMaybe (string "complement(")
-  optional (string "order(")
-  coordinates <- many1 (try genParseCoordinates)
-  optional (string ")")
-  optional (string ")")
-  newline
-  return (setComplement complement coordinates)
+genParserCoordinates :: GenParser Char st Coordinates
+genParserCoordinates = do
+  coordinates <- choice [(try genParserForwardCoordinates),(try genParserComplementCoordinates)]
+  return $ coordinates
 
-setComplement :: Maybe String -> [Coordinates] -> [Coordinates]
-setComplement complementString coordinates = coordinatesWithComplement
-  where complementBool = isComplement complementString
-        updateCoordinate complementBool coordinate= coordinate { complement = complementBool }
+genParserCoordinatesSet :: GenParser Char st [Coordinates]
+genParserCoordinatesSet = do
+  coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try genParserForwardOrder),(try genParserComplementOrder)]
+  return coordinates
+
+genParserForwardOrder :: GenParser Char st [Coordinates]
+genParserForwardOrder = do
+  string "order("
+  coordinates <- many1 genParserForwardOrderCoordinates
+  string ")"
+  return $ coordinates
+
+genParserForwardOrderCoordinates :: GenParser Char st Coordinates
+genParserForwardOrderCoordinates = do
+  --coordinateFrom <- many1 (noneOf ".")
+  coordinateFrom <- many1 digit
+  (oneOf ".><")
+  (oneOf ".><")
+  --coordinateTo <- many1 (noneOf ",)\n")
+  coordinateTo <- many1 digit
+  optional (choice [(try (string ",\n")),(try (string ","))])
+  optional (many1 (string " "))
+  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
+
+genParserComplementOrder :: GenParser Char st [Coordinates]
+genParserComplementOrder = do
+  string "complement("
+  string "order("
+  coordinates <- many1 genParserForwardOrderCoordinates
+  string ")"
+  string ")"
+  newline
+  return $ (setComplement False coordinates)
+
+genParserForwardCoordinates :: GenParser Char st Coordinates
+genParserForwardCoordinates = do
+  --coordinateFrom <- many1 (noneOf ".")
+  coordinateFrom <- many1 digit
+  (oneOf ".><")
+  (oneOf ".><")
+  --coordinateTo <- many1 (noneOf "\n")
+  coordinateTo <- many1 (noneOf "\n")
+  newline
+  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) False
+
+genParserComplementCoordinates :: GenParser Char st Coordinates
+genParserComplementCoordinates = do
+  string "complement("
+  --coordinateFrom <- many1 (noneOf ".")
+  coordinateFrom <- many1 digit
+  (oneOf ".><")
+  (oneOf ".><")
+  --coordinateTo <- many1 (noneOf ")")
+  coordinateTo <- many1 digit
+  string ")"
+  newline
+  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
+
+setComplement :: Bool -> [Coordinates] -> [Coordinates]
+setComplement complementBool coordinates = coordinatesWithComplement
+  where updateCoordinate complementBool coordinate = coordinate { complement = complementBool }
         coordinatesWithComplement = map (updateCoordinate complementBool) coordinates
 
 genParseGOterm :: GenParser Char st GOterm
@@ -276,17 +318,6 @@ genParseDbXRef = do
   string "\""
   newline
   return $ DbXRef db ref
-
-genParseCoordinates :: GenParser Char st Coordinates
-genParseCoordinates = do
-  optional (many space)
-  complement <- optionMaybe (string "complement(")
-  coordinateFrom <- many1 (noneOf ".")
-  (oneOf ".><")
-  (oneOf ".><")
-  coordinateTo <- many1 (noneOf " ,)\n")
-  optional (string ",")
-  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) (isComplement complement)
   
 -- | 
 parseGenbank input = parse genParserGenbank "genParserGenbank" input

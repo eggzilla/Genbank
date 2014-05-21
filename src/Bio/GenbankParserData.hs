@@ -74,7 +74,7 @@ data Feature = Gene {
   | RepeatRegion
   {
      repeatCoordinates :: Coordinates,
-     repeatNote :: String
+     repeatNote :: Maybe String
   }
   deriving (Show, Eq)
 
@@ -110,7 +110,7 @@ data SubFeature = CDS
      miscGeneName :: String,
      miscLocusTag :: String,
      miscGeneSynonym :: [String],
-     miscNote :: String,
+     miscNote :: Maybe String,
      miscDbXref :: [DbXRef]
   }
   | NcRNA
@@ -121,7 +121,7 @@ data SubFeature = CDS
      ncRNAGeneSynonym :: [String],
      ncRNAClass :: String,
      ncRNAProduct :: String,
-     ncRNANote :: String,
+     ncRNANote :: Maybe String,
      ncRNADbXref :: [DbXRef]
   }
   | MobileElement
