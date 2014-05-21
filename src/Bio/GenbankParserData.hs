@@ -133,6 +133,30 @@ data SubFeature = CDS
      mobileCoordinates :: Coordinates,
      mobileType :: String
   }
+  | STS
+  {
+    stsCoordinates :: Coordinates,
+    standardName :: String,
+    stsDbXref :: [DbXRef]
+  }
+  | RRNA
+  {
+    rRNACoordinates :: Coordinates,
+    rRNAGeneName :: String,
+    rRNALocusTag :: String,
+    rRNAGeneSynonym :: String,  
+    rRNADbXref :: [DbXRef]
+  }
+  | TRNA
+  {
+    tRNACoordinates :: Coordinates,
+    tRNAGenename :: String,
+    tRNALocusTag :: String,
+    tRNAGeneSynonym :: String,
+    tRNAProduct :: String,  
+    tRNANote :: String,
+    tRNADbXref :: [DbXRef]
+  }
   deriving (Show, Eq)
 
 data OriginSlice = OriginSlice
