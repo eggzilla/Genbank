@@ -136,6 +136,9 @@ data SubFeature = CDS
   | STS
   {
     stsCoordinates :: Coordinates,
+    stsGeneName :: String,
+    stsLocusTag :: String,
+    stsGeneSynonym :: String,
     standardName :: String,
     stsDbXref :: [DbXRef]
   }
@@ -150,7 +153,7 @@ data SubFeature = CDS
   | TRNA
   {
     tRNACoordinates :: Coordinates,
-    tRNAGenename :: String,
+    tRNAGeneName :: String,
     tRNALocusTag :: String,
     tRNAGeneSynonym :: String,
     tRNAProduct :: String,  

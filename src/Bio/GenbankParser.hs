@@ -174,8 +174,44 @@ repeatAhead= do
 
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
-  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS)]
+  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA)]
   return subFeature
+
+genParserSTS :: GenParser Char st SubFeature
+genParserSTS = do
+  string "     STS"
+  many1 space
+  stsCoordinates <- genParserCoordinates
+  stsGeneName <- parseStringField "gene"
+  stsLocusTag <- parseStringField "locus_tag"
+  stsGeneSynonym <- parseStringField "gene_synonym"
+  standardName <- parseStringField "standard_name"
+  stsDbXref <- many1 (try genParseDbXRef)
+  return $ STS stsCoordinates stsGeneName stsLocusTag standardName stsGeneSynonym stsDbXref
+
+genParsertRNA :: GenParser Char st SubFeature
+genParsertRNA = do
+  string "     tRNA"
+  many1 space
+  tRNACoordinates <- genParserCoordinates
+  tRNAGeneName <- parseStringField "standard_name"
+  tRNALocusTag <- parseStringField "locus_tag"
+  tRNAGeneSynonym <- parseStringField "gene_synonym"
+  tRNAProduct <- parseStringField "product"
+  tRNANote <- parseStringField "note"
+  tRNADbXref <- many1 (try genParseDbXRef)
+  return $ TRNA tRNACoordinates tRNAGeneName tRNALocusTag tRNAGeneSynonym tRNAProduct tRNANote tRNADbXref 
+
+genParserRRNA :: GenParser Char st SubFeature
+genParserRRNA = do
+  string "     rRNA"
+  many1 space
+  rRNACoordinates <- genParserCoordinates
+  rRNAGeneName <- parseStringField "standard_name"
+  rRNALocusTag <- parseStringField "locus_tag"
+  rRNAGeneSynonym <- parseStringField "gene_synonym"
+  rRNADbXref <- many1 (try genParseDbXRef)
+  return $ RRNA rRNACoordinates rRNAGeneName rRNALocusTag rRNAGeneSynonym rRNADbXref 
 
 genParserCDS :: GenParser Char st SubFeature
 genParserCDS = do
