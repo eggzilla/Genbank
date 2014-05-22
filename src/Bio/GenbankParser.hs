@@ -149,7 +149,7 @@ genParserGene :: GenParser Char st Feature
 genParserGene = do
   string "     gene"
   many1 space
-  geneCoordinates <- genParserCoordinates
+  geneCoordinates <- (genParserCoordinatesSet "join")
   geneName <- parseStringField "gene"
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"

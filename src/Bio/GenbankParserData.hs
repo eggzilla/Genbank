@@ -64,7 +64,7 @@ data Coordinates = Coordinates
   deriving (Show, Eq)
 
 data Feature = Gene {
-     geneCoordinates :: Coordinates,
+     geneCoordinates :: [Coordinates],
      geneName :: String,
      locusTag :: String,
      geneSynonym :: [String],
