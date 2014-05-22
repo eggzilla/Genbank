@@ -194,7 +194,7 @@ genParsertRNA = do
   string "     tRNA"
   many1 space
   tRNACoordinates <- genParserCoordinates
-  tRNAGeneName <- parseStringField "standard_name"
+  tRNAGeneName <- parseStringField "gene"
   tRNALocusTag <- parseStringField "locus_tag"
   tRNAGeneSynonym <- parseStringField "gene_synonym"
   tRNAProduct <- parseStringField "product"
@@ -207,7 +207,7 @@ genParserRRNA = do
   string "     rRNA"
   many1 space
   rRNACoordinates <- genParserCoordinates
-  rRNAGeneName <- parseStringField "standard_name"
+  rRNAGeneName <- parseStringField "gene"
   rRNALocusTag <- parseStringField "locus_tag"
   rRNAGeneSynonym <- parseStringField "gene_synonym"
   rRNADbXref <- many1 (try genParseDbXRef)
