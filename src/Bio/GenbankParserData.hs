@@ -147,7 +147,8 @@ data SubFeature = CDS
     rRNACoordinates :: Coordinates,
     rRNAGeneName :: String,
     rRNALocusTag :: String,
-    rRNAGeneSynonym :: String,  
+    rRNAGeneSynonym :: String,
+    tRNAProduct :: String,  
     rRNADbXref :: [DbXRef]
   }
   | TRNA

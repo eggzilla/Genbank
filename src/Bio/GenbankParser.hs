@@ -210,8 +210,9 @@ genParserRRNA = do
   rRNAGeneName <- parseStringField "gene"
   rRNALocusTag <- parseStringField "locus_tag"
   rRNAGeneSynonym <- parseStringField "gene_synonym"
+  rRNAProduct <- parseStringField "product"
   rRNADbXref <- many1 (try genParseDbXRef)
-  return $ RRNA rRNACoordinates rRNAGeneName rRNALocusTag rRNAGeneSynonym rRNADbXref 
+  return $ RRNA rRNACoordinates rRNAGeneName rRNALocusTag rRNAGeneSynonym rRNAProduct rRNADbXref 
 
 genParserCDS :: GenParser Char st SubFeature
 genParserCDS = do
