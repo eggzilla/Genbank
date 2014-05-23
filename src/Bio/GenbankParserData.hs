@@ -96,10 +96,12 @@ data SubFeature = CDS
      ecNumber :: [String], 
      cdsFunction :: [String],
      experiment :: [String],
+     cdsRibosomalSlippage :: Bool,
      cdsGOterms :: [GOterm],
      cdsNote :: Maybe String,
      cdsPseudo :: Bool,
      codonStart :: Int,
+     translationExcept :: Maybe String,
      translationTable :: Int,
      cdsProduct :: Maybe String,
      proteinId :: Maybe String,
@@ -125,7 +127,7 @@ data SubFeature = CDS
      ncRNAClass :: String,
      ncRNAProduct :: String,
      ncRNANote :: Maybe String,
-     ncRNAFunction :: Maybe String,
+     ncRNAFunction :: [String],
      ncRNADbXref :: [DbXRef]
   }
   | MobileElement
@@ -139,7 +141,7 @@ data SubFeature = CDS
     stsGeneName :: Maybe String,
     stsLocusTag :: Maybe String,
     stsGeneSynonym :: Maybe String,
-    standardName :: String,
+    standardName :: Maybe String,
     stsDbXref :: [DbXRef]
   }
   | RRNA
@@ -161,6 +163,18 @@ data SubFeature = CDS
     tRNANote :: Maybe String,
     tRNAPseudo :: Bool,
     tRNADbXref :: [DbXRef]
+  }
+  | TMRNA
+  {
+    tmRNACoordinates :: Coordinates,
+    tmRNAGeneName :: String,
+    tmRNALocusTag :: String,
+    tmRNAGeneSynonym :: String,
+    tmRNAProduct :: Maybe String,  
+    tmRNANote :: Maybe String,
+    tmRNAFunction :: [String],
+    tmRNAPseudo :: Bool,
+    tmRNADbXref :: [DbXRef]
   }
   deriving (Show, Eq)
 

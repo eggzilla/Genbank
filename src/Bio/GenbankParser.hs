@@ -154,16 +154,16 @@ genParserGene = do
   locusTag <- parseStringField "locus_tag"
   geneSynonym <- parseStringField "gene_synonym"
   geneNote <- optionMaybe (try (parseStringField "note"))
-  genePseudo <- optionMaybe (try parsePseudo)
+  genePseudo <- optionMaybe (try (parseFlag "pseudo"))
   geneDbXref <- many1 (try genParseDbXRef)
   subFeatures <- many (genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
   return $ Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneNote (isJust genePseudo) geneDbXref subFeatures
 
-parsePseudo :: GenParser Char st Char
-parsePseudo = do
+parseFlag :: String -> GenParser Char st Char
+parseFlag flagString = do
   many1 space
-  pseudo <- string "/pseudo"
+  flag <- string ("/" ++ flagString)
   newline
 
 geneAhead = do
@@ -174,7 +174,7 @@ repeatAhead= do
 
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
-  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA)]
+  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA), (try genParsertmRNA)]
   return subFeature
 
 genParserSTS :: GenParser Char st SubFeature
@@ -185,7 +185,7 @@ genParserSTS = do
   stsGeneName <- optionMaybe (try (parseStringField "gene"))
   stsLocusTag <- optionMaybe (try (parseStringField "locus_tag"))
   stsGeneSynonym <- optionMaybe (try (parseStringField "gene_synonym"))
-  standardName <- parseStringField "standard_name"
+  standardName <- optionMaybe (try (parseStringField "standard_name"))
   stsDbXref <- many1 (try genParseDbXRef)
   return $ STS stsCoordinates stsGeneName stsLocusTag stsGeneSynonym standardName stsDbXref
 
@@ -198,10 +198,25 @@ genParsertRNA = do
   tRNALocusTag <- parseStringField "locus_tag"
   tRNAGeneSynonym <- parseStringField "gene_synonym"
   tRNAProduct <- parseStringField "product"
-  tRNAPseudo <- optionMaybe (try parsePseudo)
+  tRNAPseudo <- optionMaybe (try (parseFlag "pseudo"))
   tRNANote <- optionMaybe (try (parseStringField "note"))
   tRNADbXref <- many1 (try genParseDbXRef)
   return $ TRNA tRNACoordinates tRNAGeneName tRNALocusTag tRNAGeneSynonym tRNAProduct tRNANote (isJust tRNAPseudo) tRNADbXref 
+
+genParsertmRNA :: GenParser Char st SubFeature
+genParsertmRNA = do
+  string "     tmRNA"
+  many1 space
+  tmRNACoordinates <- genParserCoordinates
+  tmRNAGeneName <- parseStringField "gene"
+  tmRNALocusTag <- parseStringField "locus_tag"
+  tmRNAGeneSynonym <- parseStringField "gene_synonym"
+  tmRNAProduct <- optionMaybe (try (parseStringField "product"))
+  tmRNANote <- optionMaybe (try (parseStringField "note"))
+  tmRNAFunction  <- many (try (parseStringField "function"))
+  tmRNAPseudo <- optionMaybe (try (parseFlag "pseudo"))
+  tmRNADbXref <- many1 (try genParseDbXRef)
+  return $ TMRNA tmRNACoordinates tmRNAGeneName tmRNALocusTag tmRNAGeneSynonym tmRNAProduct tmRNANote tmRNAFunction (isJust tmRNAPseudo) tmRNADbXref 
 
 genParserRRNA :: GenParser Char st SubFeature
 genParserRRNA = do
@@ -229,16 +244,18 @@ genParserCDS = do
   --todo: functions and ec are sometimes swaped
   --many (try (parseStringField "function"))
   experiment <- many (try (parseStringField "experiment"))
+  cdsRibosomalSlippage <- optionMaybe (try (parseFlag "ribosomal_slippage"))
   cdsGOterms <- many (try genParseGOterm)
   cdsNote <- optionMaybe (try (parseStringField "note"))
-  cdsPseudo <- optionMaybe (try parsePseudo)
+  cdsPseudo <- optionMaybe (try (parseFlag "pseudo"))
   codonStart <- parseIntField "codon_start"
+  translationExcept <- optionMaybe (try (parseStringBracketField "transl_except"))
   translationTable <- parseIntField "transl_table"
   cdsProduct <- optionMaybe (try (parseStringField "product"))
   proteinId <- optionMaybe (try (parseStringField "protein_id"))
   geneDbXref <- many1 (try genParseDbXRef)
   translation <- optionMaybe (try (parseStringField "translation"))
-  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationTable cdsProduct proteinId geneDbXref translation
+  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref translation
 
 genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
@@ -263,7 +280,7 @@ genParserNcRNA = do
   ncRNAClass <- parseStringField "ncRNA_class"
   ncRNAProduct <- parseStringField "product"
   ncRNANote <- optionMaybe (try (parseStringField "note"))
-  ncRNAFunction <- optionMaybe (try (parseStringField "function"))
+  ncRNAFunction <- many (try (parseStringField "function"))
   ncRNADbXref <- many1 (try genParseDbXRef)
   return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote ncRNAFunction ncRNADbXref
 
@@ -387,12 +404,21 @@ readDouble = read
 readInt :: String -> Int
 readInt = read
 
+parseStringBracketField :: String -> GenParser Char st String
+parseStringBracketField fieldname = do
+  many1 space
+  string ("/" ++ fieldname ++ "=(")
+  stringField <- many1( noneOf ")")
+  string ")"
+  newline
+  return $ stringField
+  
 -- | Parse a field containing a String         
 parseStringField :: String -> GenParser Char st String
 parseStringField fieldname = do
   many1 space
   string ("/" ++ fieldname ++ "=\"")
-  stringField <- many1 (noneOf "\"")
+  stringField <- many1( noneOf "\"")
   string "\""
   newline
   return $ stringField
