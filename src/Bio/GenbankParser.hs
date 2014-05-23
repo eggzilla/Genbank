@@ -198,8 +198,8 @@ genParsertRNA = do
   tRNALocusTag <- parseStringField "locus_tag"
   tRNAGeneSynonym <- parseStringField "gene_synonym"
   tRNAProduct <- parseStringField "product"
-  tRNANote <- optionMaybe (try (parseStringField "note"))
   tRNAPseudo <- optionMaybe (try parsePseudo)
+  tRNANote <- optionMaybe (try (parseStringField "note"))
   tRNADbXref <- many1 (try genParseDbXRef)
   return $ TRNA tRNACoordinates tRNAGeneName tRNALocusTag tRNAGeneSynonym tRNAProduct tRNANote (isJust tRNAPseudo) tRNADbXref 
 
