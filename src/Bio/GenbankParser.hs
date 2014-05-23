@@ -244,12 +244,12 @@ genParserMiscFeature = do
   string "     misc_feature"
   many1 space
   miscCoordinates <- (genParserCoordinatesSet "order")
-  miscGeneName <- parseStringField "gene"
-  miscLocusTag <- parseStringField "locus_tag"
-  miscGeneSynonym <- parseStringField "gene_synonym"
+  miscGeneName <- optionMaybe (try (parseStringField "gene"))
+  miscLocusTag <- optionMaybe (try (parseStringField "locus_tag"))
+  miscGeneSynonym <- optionMaybe (try (parseStringField "gene_synonym"))
   miscNote <- optionMaybe (try (parseStringField "note"))
-  miscDbXref <- many1 (try genParseDbXRef)
-  return $ MiscFeature miscCoordinates miscGeneName miscLocusTag (splitOn ";" miscGeneSynonym) miscNote miscDbXref
+  miscDbXref <- many (try genParseDbXRef)
+  return $ MiscFeature miscCoordinates miscGeneName miscLocusTag miscGeneSynonym miscNote miscDbXref
 
 genParserNcRNA  :: GenParser Char st SubFeature
 genParserNcRNA = do
