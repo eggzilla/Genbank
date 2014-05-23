@@ -182,12 +182,12 @@ genParserSTS = do
   string "     STS"
   many1 space
   stsCoordinates <- genParserCoordinates
-  stsGeneName <- parseStringField "gene"
-  stsLocusTag <- parseStringField "locus_tag"
-  stsGeneSynonym <- parseStringField "gene_synonym"
+  stsGeneName <- optionMaybe (try (parseStringField "gene"))
+  stsLocusTag <- optionMaybe (try (parseStringField "locus_tag"))
+  stsGeneSynonym <- optionMaybe (try (parseStringField "gene_synonym"))
   standardName <- parseStringField "standard_name"
   stsDbXref <- many1 (try genParseDbXRef)
-  return $ STS stsCoordinates stsGeneName stsLocusTag standardName stsGeneSynonym stsDbXref
+  return $ STS stsCoordinates stsGeneName stsLocusTag stsGeneSynonym standardName stsDbXref
 
 genParsertRNA :: GenParser Char st SubFeature
 genParsertRNA = do

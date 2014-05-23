@@ -136,9 +136,9 @@ data SubFeature = CDS
   | STS
   {
     stsCoordinates :: Coordinates,
-    stsGeneName :: String,
-    stsLocusTag :: String,
-    stsGeneSynonym :: String,
+    stsGeneName :: Maybe String,
+    stsLocusTag :: Maybe String,
+    stsGeneSynonym :: Maybe String,
     standardName :: String,
     stsDbXref :: [DbXRef]
   }
