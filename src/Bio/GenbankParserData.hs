@@ -110,9 +110,9 @@ data SubFeature = CDS
   {
      -- multiple misc features can be annotated in one entry, therefore the coordinate field is a list
      miscCoordinates :: [Coordinates],
-     miscGeneName :: String,
-     miscLocusTag :: String,
-     miscGeneSynonym :: [String],
+     miscGeneName :: Maybe String,
+     miscLocusTag :: Maybe String,
+     miscGeneSynonym :: Maybe String,
      miscNote :: Maybe String,
      miscDbXref :: [DbXRef]
   }
@@ -158,7 +158,8 @@ data SubFeature = CDS
     tRNALocusTag :: String,
     tRNAGeneSynonym :: String,
     tRNAProduct :: String,  
-    tRNANote :: String,
+    tRNANote :: Maybe String,
+    tRNAPseudo :: Bool,
     tRNADbXref :: [DbXRef]
   }
   deriving (Show, Eq)
