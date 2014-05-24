@@ -278,7 +278,7 @@ genParserNcRNA = do
   ncRNALocusTag <- parseStringField "locus_tag"
   ncRNAGeneSynonym <- many1 (try (parseStringField "gene_synonym"))
   ncRNAClass <- parseStringField "ncRNA_class"
-  ncRNAProduct <- parseStringField "product"
+  ncRNAProduct <- optionMaybe (try (parseStringField "product"))
   ncRNANote <- optionMaybe (try (parseStringField "note"))
   ncRNAFunction <- many (try (parseStringField "function"))
   ncRNADbXref <- many1 (try genParseDbXRef)
@@ -297,7 +297,7 @@ genParserCoordinates = do
   coordinates <- choice [(try genParserForwardCoordinates),(try genParserComplementCoordinates)]
   return $ coordinates
 
-genParserCoordinatesSet :: String -> GenParser Char st ([Coordinates],Maybe String)
+genParserCoordinatesSet :: String -> GenParser Char st CoordinateSet
 genParserCoordinatesSet prefix = do
   coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try (genParserForwardPrefix prefix)),(try (genParserComplementPrefix prefix))]
   return $ CoordinateSet coordinates (Just prefix)

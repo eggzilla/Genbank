@@ -131,7 +131,7 @@ data SubFeature = CDS
      ncRNALocusTag :: String,
      ncRNAGeneSynonym :: [String],
      ncRNAClass :: String,
-     ncRNAProduct :: String,
+     ncRNAProduct :: Maybe String,
      ncRNANote :: Maybe String,
      ncRNAFunction :: [String],
      ncRNADbXref :: [DbXRef]
