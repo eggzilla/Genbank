@@ -133,6 +133,7 @@ data SubFeature = CDS
      ncRNAClass :: String,
      ncRNAProduct :: Maybe String,
      ncRNANote :: Maybe String,
+     ncRNAPseudo :: Bool,
      ncRNAFunction :: [String],
      ncRNADbXref :: [DbXRef]
   }
