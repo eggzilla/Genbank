@@ -417,10 +417,8 @@ parseStringBracketField :: String -> GenParser Char st String
 parseStringBracketField fieldname = do
   many1 space
   string ("/" ++ fieldname ++ "=(")
-  stringField <- many1( noneOf ")")
-  string ")"
-  newline
-  return $ stringField
+  stringBracketField <- manyTill anyChar (try (string ")\n"))
+  return $ stringBracketField
   
 -- | Parse a field containing a String         
 parseStringField :: String -> GenParser Char st String
