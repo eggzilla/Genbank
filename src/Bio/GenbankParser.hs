@@ -81,7 +81,6 @@ genParserField fieldStart fieldEnd = do
   many1 space
   manyTill anyChar (try (lookAhead (string fieldEnd)))
                   
-
 -- | Parse the input as OriginSlice datatype
 genParserOriginSlice :: GenParser Char st OriginSlice
 genParserOriginSlice = do
@@ -174,7 +173,7 @@ repeatAhead= do
 
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
-  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA), (try genParsertmRNA)]
+  subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA), (try genParsertmRNA), (try genParserRepOrigin)]
   return subFeature
 
 genParserSTS :: GenParser Char st SubFeature
@@ -292,6 +291,15 @@ genParserMobileElement = do
   mobileElementCoordinates <- genParserCoordinates
   mobileType <- parseStringField "mobile_element_type"
   return $ MobileElement mobileElementCoordinates mobileType
+
+genParserRepOrigin :: GenParser Char st SubFeature
+genParserRepOrigin = do
+  string "     rep_origin"
+  many1 space
+  repOriginCoordinates <- genParserCoordinates
+  repOriginNote <- optionMaybe (try (parseStringField "note"))
+  repOriginDbXref <- many1 (try genParseDbXRef)
+  return $ REPORIGIN repOriginCoordinates repOriginNote repOriginDbXref
 
 genParserCoordinates :: GenParser Char st Coordinates
 genParserCoordinates = do

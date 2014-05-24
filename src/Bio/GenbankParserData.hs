@@ -183,6 +183,12 @@ data SubFeature = CDS
     tmRNAPseudo :: Bool,
     tmRNADbXref :: [DbXRef]
   }
+  | REPORIGIN
+  {
+    tmRNACoordinates :: Coordinates,
+    tmRNANote :: Maybe String,
+    tmRNADbXref :: [DbXRef]
+  }
   deriving (Show, Eq)
 
 data OriginSlice = OriginSlice
