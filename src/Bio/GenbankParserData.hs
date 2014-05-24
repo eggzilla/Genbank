@@ -64,7 +64,7 @@ data Coordinates = Coordinates
   deriving (Show, Eq)
 
 data Feature = Gene {
-     geneCoordinates :: [Coordinates],
+     geneCoordinates :: CoordinateSet,
      geneName :: String,
      locusTag :: String,
      geneSynonym :: [String],
@@ -87,9 +87,16 @@ data DbXRef = DbXRef
   }
   deriving (Show, Eq)
 
+data CoordinateSet = CoordinateSet
+  {
+    setCoordinates :: [Coordinates], 
+    setType :: Maybe String
+  }
+  deriving (Show, Eq)
+
 data SubFeature = CDS 
-  {  --joined cds have more than one element in the coordinate list
-     cdsCoordinates :: [Coordinates],
+  {  
+     cdsCoordinates :: CoordinateSet,
      cdsGeneName :: String,
      cdsLocusTag :: String,
      cdsGeneSynonym :: [String],
@@ -110,8 +117,7 @@ data SubFeature = CDS
   }
   | MiscFeature
   {
-     -- multiple misc features can be annotated in one entry, therefore the coordinate field is a list
-     miscCoordinates :: [Coordinates],
+     miscCoordinates :: CoordinateSet,
      miscGeneName :: Maybe String,
      miscLocusTag :: Maybe String,
      miscGeneSynonym :: Maybe String,

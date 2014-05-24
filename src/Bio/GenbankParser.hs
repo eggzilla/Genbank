@@ -261,7 +261,7 @@ genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
   string "     misc_feature"
   many1 space
-  miscCoordinates <- (genParserCoordinatesSet "order")
+  miscCoordinates <- choice [(try (genParserCoordinatesSet "order")), (try (genParserCoordinatesSet "join"))]
   miscGeneName <- optionMaybe (try (parseStringField "gene"))
   miscLocusTag <- optionMaybe (try (parseStringField "locus_tag"))
   miscGeneSynonym <- optionMaybe (try (parseStringField "gene_synonym"))
@@ -297,10 +297,10 @@ genParserCoordinates = do
   coordinates <- choice [(try genParserForwardCoordinates),(try genParserComplementCoordinates)]
   return $ coordinates
 
-genParserCoordinatesSet :: String -> GenParser Char st [Coordinates]
+genParserCoordinatesSet :: String -> GenParser Char st ([Coordinates],Maybe String)
 genParserCoordinatesSet prefix = do
   coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try (genParserForwardPrefix prefix)),(try (genParserComplementPrefix prefix))]
-  return coordinates
+  return $ CoordinateSet coordinates (Just prefix)
 
 -- | Parsing of coordinate lists with prefix e.g. order, join
 genParserForwardPrefix :: String -> GenParser Char st [Coordinates]
