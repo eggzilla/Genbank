@@ -151,13 +151,14 @@ genParserGene = do
   geneCoordinates <- (genParserCoordinatesSet "join")
   geneName <- parseStringField "gene"
   locusTag <- parseStringField "locus_tag"
+  oldLocusTag <- optionMaybe (try (parseStringField "old_locus_tag"))
   geneSynonym <- parseStringField "gene_synonym"
   geneNote <- optionMaybe (try (parseStringField "note"))
   genePseudo <- optionMaybe (try (parseFlag "pseudo"))
   geneDbXref <- many1 (try genParseDbXRef)
   subFeatures <- many (genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
-  return $ Gene geneCoordinates geneName locusTag (splitOn ";" geneSynonym) geneNote (isJust genePseudo) geneDbXref subFeatures
+  return $ Gene geneCoordinates geneName locusTag oldLocusTag (splitOn ";" geneSynonym) geneNote (isJust genePseudo) geneDbXref subFeatures
 
 parseFlag :: String -> GenParser Char st Char
 parseFlag flagString = do
@@ -236,6 +237,7 @@ genParserCDS = do
   cdsCoordinates <- (genParserCoordinatesSet "join")
   cdsGeneName <- parseStringField "gene"
   cdsLocusTag <- parseStringField "locus_tag"
+  cdsOldLocusTag <- optionMaybe (try (parseStringField "old_locus_tag"))
   cdsGeneSynonym <- parseStringField "gene_synonym"
   ecNumber <- many (try (parseStringField "EC_number"))
   cdsFunction  <- many (try (parseStringField "function"))
@@ -254,7 +256,7 @@ genParserCDS = do
   proteinId <- optionMaybe (try (parseStringField "protein_id"))
   geneDbXref <- many1 (try genParseDbXRef)
   translation <- optionMaybe (try (parseStringField "translation"))
-  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref translation
+  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag cdsOldLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref translation
 
 genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
