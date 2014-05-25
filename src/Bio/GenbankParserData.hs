@@ -8,7 +8,7 @@ module Bio.GenbankParserData where
 data Genbank = Genbank
   {
     locus :: String,
-    length :: Int,
+    genbankLength :: Int,
     -- DNA/RNA/Protein
     moleculeType :: String,
     circular :: String,
