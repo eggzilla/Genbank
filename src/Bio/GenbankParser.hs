@@ -14,6 +14,8 @@ import Control.Monad
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
+import Bio.Core.Sequence
+import qualified Data.ByteString.Lazy.Char8 as L
 
 -- | Parse the input as Genbank datatype
 genParserGenbank :: GenParser Char st Genbank
@@ -256,7 +258,13 @@ genParserCDS = do
   proteinId <- optionMaybe (try (parseStringField "protein_id"))
   geneDbXref <- many1 (try genParseDbXRef)
   translation <- optionMaybe (try (parseStringField "translation"))
-  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag cdsOldLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref translation
+  return $ CDS cdsCoordinates cdsGeneName cdsLocusTag cdsOldLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref (translationtoSeqData translation)
+
+translationtoSeqData :: Maybe String -> Maybe SeqData
+translationtoSeqData translationInput 
+  | (isJust translationInput) = Just (SeqData $ (L.pack (filter (\aminoacid -> (aminoacid /= '\n')) (fromJust translationInput))))
+  | otherwise = Nothing
+
 
 genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do

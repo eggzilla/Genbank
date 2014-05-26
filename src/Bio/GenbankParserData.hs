@@ -3,6 +3,7 @@
 --   Genbank record sample: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
 
 module Bio.GenbankParserData where
+import Bio.Core.Sequence
     
 -- | 
 data Genbank = Genbank
@@ -115,7 +116,7 @@ data SubFeature = CDS
      cdsProduct :: Maybe String,
      proteinId :: Maybe String,
      cdsDbXref :: [DbXRef],
-     translation :: Maybe String
+     translation :: Maybe SeqData
   }
   | MiscFeature
   {
