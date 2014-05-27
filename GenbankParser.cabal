@@ -32,7 +32,7 @@ library
   exposed-modules:   Bio.GenbankParser, Bio.GenbankParserData
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.5 && <5, parsec, split
+  build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore
   
   -- Directories containing source files.
   hs-source-dirs:      src

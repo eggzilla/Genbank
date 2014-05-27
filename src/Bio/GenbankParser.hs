@@ -71,18 +71,29 @@ genParserGenbank = do
   contig <- many1 (noneOf "\n")
   newline
   string "ORIGIN"
-  origin <- many1 genParserOriginSlice
+  --origin <- many1 genParserOriginSlice
+  origin <- many1 genParserOriginSequence
   string "//"
   newline
   eof  
-  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features contig origin 
+  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features contig (origintoSeqData origin) 
 
 genParserField :: String -> String -> GenParser Char st String
 genParserField fieldStart fieldEnd = do 
   string fieldStart
   many1 space
   manyTill anyChar (try (lookAhead (string fieldEnd)))
-                  
+                 
+-- | Parse the input as OriginSlice datatype
+genParserOriginSequence :: GenParser Char st String
+genParserOriginSequence = do
+  many1 space
+  many1 (noneOf " ")
+  space
+  originSequence <- many1 (noneOf "\n")
+  newline
+  return $ originSequence
+ 
 -- | Parse the input as OriginSlice datatype
 genParserOriginSlice :: GenParser Char st OriginSlice
 genParserOriginSlice = do
@@ -260,11 +271,13 @@ genParserCDS = do
   translation <- optionMaybe (try (parseStringField "translation"))
   return $ CDS cdsCoordinates cdsGeneName cdsLocusTag cdsOldLocusTag (splitOn ";" cdsGeneSynonym) ecNumber cdsFunction experiment (isJust cdsRibosomalSlippage) cdsGOterms cdsNote (isJust cdsPseudo) codonStart translationExcept translationTable cdsProduct proteinId geneDbXref (translationtoSeqData translation)
 
+origintoSeqData :: [String] -> SeqData
+origintoSeqData originInput = SeqData $ (L.pack (filter (\nuc -> (nuc /= ('\n') && (nuc /= (' ')))) (concat originInput)))
+
 translationtoSeqData :: Maybe String -> Maybe SeqData
 translationtoSeqData translationInput 
-  | (isJust translationInput) = Just (SeqData $ (L.pack (filter (\aminoacid -> (aminoacid /= '\n')) (fromJust translationInput))))
-  | otherwise = Nothing
-
+  | (isJust translationInput) = Just (SeqData $ (L.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
+  | otherwise = Nothing 
 
 genParserMiscFeature :: GenParser Char st SubFeature
 genParserMiscFeature = do
@@ -341,7 +354,6 @@ genParserForwardPrefixCoordinates = do
   optional (choice [(try (string ",\n")),(try (string ","))])
   optional (many1 (string " "))
   return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
-
 
 -- | Parseing of coordinate complement coordinate lists with prefix
 genParserComplementPrefix :: String -> GenParser Char st [Coordinates]

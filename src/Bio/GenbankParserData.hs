@@ -27,7 +27,7 @@ data Genbank = Genbank
     comment :: String,
     features :: Features,
     contig :: String,
-    origin :: [OriginSlice]
+    origin :: SeqData
   }
   deriving (Show, Eq)
 
