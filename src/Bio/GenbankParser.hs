@@ -35,33 +35,38 @@ genParserGenbank = do
   many1 space
   creationDate <- many1 (noneOf "\n")
   newline
-  string "DEFINITION"
-  many1 space
-  definition <- many1 (noneOf "\n")
-  newline
-  string "ACCESSION"
-  many1 space
-  accession <- many1 (noneOf "\n")
-  newline
+  --string "DEFINITION"
+  --many1 space
+  --definition <- many1 (noneOf "\n")
+  --newline
+  definition <- genParserField "DEFINITION" "ACCESSION"
+  --string "ACCESSION"
+  --many1 space
+  --accession <- many1 (noneOf "\n")
+  --newline
+  accession <- genParserField "ACCESSION" "VERSION"
   string "VERSION"
   many1 space
   version <- many1 (noneOf " ")
   many1 space
   geneIdentifier <- many1 (noneOf "\n")
   newline
-  string "DBLINK"
-  many1 space
-  dblink <- many1 (noneOf "\n")
-  newline
-  string "KEYWORDS"
-  many1 space
-  keywords <- many1 (noneOf "\n")
-  newline
-  string "SOURCE"
-  many1 space
-  source <- many1 (noneOf "\n")
-  newline
-  many1 space
+  --string "DBLINK"
+  --many1 space
+  --dblink <- many1 (noneOf "\n")
+  --newline
+  dblink <- genParserField "DBLINK" "KEYWORDS"
+  --string "KEYWORDS"
+  --many1 space
+  --keywords <- many1 (noneOf "\n")
+  --newline
+  keywords <- genParserField "KEYWORDS" "SOURCE"
+  --string "SOURCE"
+  --many1 space
+  --source <- many1 (noneOf "\n")
+  --newline
+  --many1 space
+  source <- genParserField "SOURCE" "ORGANISM"
   organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
   comment <- genParserField "COMMENT" "FEATURES"
