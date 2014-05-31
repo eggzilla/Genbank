@@ -145,6 +145,8 @@ genParserFeatures = do
   sourceMoleculeType <- parseStringField "mol_type"
   sourceStrain <- optionMaybe (parseStringField "strain")
   sourceSubStrain <- optionMaybe (parseStringField "sub_strain")
+  sourceSeroVar <- optionMaybe (parseStringField "serovar")
+  sourceIsolationSource <- optionMaybe (parseStringField "isolation_source")
   sourceDbXref <- many1 (try genParseDbXRef)
   genes <- many genParserFeature
   return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceDbXref genes

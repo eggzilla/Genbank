@@ -51,6 +51,8 @@ data Features = Features
      sourceMoleculeType :: String,
      sourceStrain :: Maybe String,
      sourceSubStrain :: Maybe String,
+     sourceSerovar :: Maybe String,
+     sourceIsolationSource :: Maybe String,
      sourceDbXref :: [DbXRef],
      genes :: [Feature] 
   }
