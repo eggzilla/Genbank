@@ -149,7 +149,7 @@ genParserFeatures = do
   sourceIsolationSource <- optionMaybe (parseStringField "isolation_source")
   sourceDbXref <- many1 (try genParseDbXRef)
   genes <- many genParserFeature
-  return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceDbXref genes
+  return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceSeroVar sourceIsolationSource sourceDbXref genes
 
 genParserFeature :: GenParser Char st Feature
 genParserFeature = do
