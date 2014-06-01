@@ -26,7 +26,7 @@ data Genbank = Genbank
     references :: [Reference],
     comment :: String,
     features :: Features,
-    contig :: String,
+    contig :: Maybe String,
     origin :: SeqData
   }
   deriving (Show, Eq)
@@ -53,7 +53,9 @@ data Features = Features
      sourceSubStrain :: Maybe String,
      sourceSerovar :: Maybe String,
      sourceIsolationSource :: Maybe String,
+     sourceSubSpecies :: Maybe String,
      sourceDbXref :: [DbXRef],
+     sourceCollectionDate :: Maybe String,
      genes :: [Feature] 
   }
   deriving (Show, Eq)
@@ -68,10 +70,10 @@ data Coordinates = Coordinates
 
 data Feature = Gene {
      geneCoordinates :: CoordinateSet,
-     geneName :: String,
-     locusTag :: String,
+     geneName :: Maybe String,
+     locusTag :: Maybe String,
      oldLocusTag :: Maybe String,
-     geneSynonym :: [String],
+     geneSynonym :: Maybe String,
      geneNote :: Maybe String,
      genePseudo :: Bool,
      geneDbXref :: [DbXRef],

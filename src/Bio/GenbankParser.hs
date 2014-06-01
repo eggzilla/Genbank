@@ -71,17 +71,20 @@ genParserGenbank = do
   references <- many1 genParserReference
   comment <- genParserField "COMMENT" "FEATURES"
   features <- genParserFeatures
-  string "CONTIG"
-  many1 space
-  contig <- many1 (noneOf "\n")
-  newline
+  --string "CONTIG"
+  --many1 space
+  --contig <- many1 (noneOf "\n")
+  --newline 
+  contig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
   string "ORIGIN"
+  many (string " ")
+  newline
   --origin <- many1 genParserOriginSlice
   origin <- many1 genParserOriginSequence
   string "//"
   newline
-  eof  
-  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features contig (origintoSeqData origin) 
+  --many (choice [space, newline])
+  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features Nothing (origintoSeqData origin) 
 
 genParserField :: String -> String -> GenParser Char st String
 genParserField fieldStart fieldEnd = do 
@@ -143,13 +146,15 @@ genParserFeatures = do
   sourceCoordinates <- genParserCoordinates
   sourceOrganism <- parseStringField "organism"
   sourceMoleculeType <- parseStringField "mol_type"
-  sourceStrain <- optionMaybe (parseStringField "strain")
-  sourceSubStrain <- optionMaybe (parseStringField "sub_strain")
-  sourceSeroVar <- optionMaybe (parseStringField "serovar")
-  sourceIsolationSource <- optionMaybe (parseStringField "isolation_source")
+  sourceStrain <- optionMaybe (try (parseStringField "strain"))
+  sourceSubStrain <- optionMaybe (try (parseStringField "sub_strain"))
+  sourceSeroVar <- optionMaybe (try (parseStringField "serovar"))
+  sourceIsolationSource <- optionMaybe (try (parseStringField "isolation_source"))
+  sourceSubSpecies  <- optionMaybe (try (parseStringField "sub_species"))
   sourceDbXref <- many1 (try genParseDbXRef)
-  genes <- many genParserFeature
-  return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceSeroVar sourceIsolationSource sourceDbXref genes
+  sourceCollectionDate <- optionMaybe (try (parseStringField "collection_date"))
+  genes <- many (try genParserFeature)
+  return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceSeroVar sourceIsolationSource sourceSubSpecies sourceDbXref sourceCollectionDate genes
 
 genParserFeature :: GenParser Char st Feature
 genParserFeature = do
@@ -169,16 +174,16 @@ genParserGene = do
   string "     gene"
   many1 space
   geneCoordinates <- (genParserCoordinatesSet "join")
-  geneName <- parseStringField "gene"
-  locusTag <- parseStringField "locus_tag"
+  geneName <- optionMaybe (try (parseStringField "gene"))
+  locusTag <- optionMaybe (try (parseStringField "locus_tag"))
   oldLocusTag <- optionMaybe (try (parseStringField "old_locus_tag"))
-  geneSynonym <- parseStringField "gene_synonym"
+  geneSynonym <-  optionMaybe (try (parseStringField "gene_synonym"))
   geneNote <- optionMaybe (try (parseStringField "note"))
   genePseudo <- optionMaybe (try (parseFlag "pseudo"))
-  geneDbXref <- many1 (try genParseDbXRef)
+  geneDbXref <- many (try genParseDbXRef)
   subFeatures <- many (genParserSubFeature) 
-  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG")))])
-  return $ Gene geneCoordinates geneName locusTag oldLocusTag (splitOn ";" geneSynonym) geneNote (isJust genePseudo) geneDbXref subFeatures
+  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
+  return $ Gene geneCoordinates geneName locusTag oldLocusTag geneSynonym geneNote (isJust genePseudo) geneDbXref subFeatures
 
 parseFlag :: String -> GenParser Char st Char
 parseFlag flagString = do
