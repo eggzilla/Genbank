@@ -31,6 +31,31 @@ data Genbank = Genbank
   }
   deriving (Show, Eq)
 
+data GenbankGeneric = GenbankGeneric
+  {
+    genericlocus :: String,
+    genericGenbankLength :: Int,
+    -- DNA/RNA/Protein
+    genericMoleculeType :: String,
+    genericCircular :: String,
+    genericDivision :: String,
+    genericCreationDate:: String,
+    genericDefinition :: String,
+    genericAccession :: String,
+    genericVersion :: String,
+    genericGeneIdentifier :: String,
+    genericDblink :: String,
+    genericKeywords :: String,
+    genericSource :: String,
+    genericOrganism :: String,
+    genericReferences :: [Reference],
+    genericComment :: String,
+    genericFeatures :: [GenericFeature],
+    genericContig :: Maybe String,
+    genericOrigin :: SeqData
+  }
+  deriving (Show, Eq)
+
 data Reference = Reference
   {
      index :: Int,
@@ -57,6 +82,37 @@ data Features = Features
      sourceDbXref :: [DbXRef],
      sourceCollectionDate :: Maybe String,
      genes :: [Feature] 
+  }
+  deriving (Show, Eq)
+
+data GenericFeature = GenericFeature {
+     featuretype :: String,
+     attibutes :: [Attribute],
+     featureDbXref :: [DbXRef],
+     genericSubFeatures :: [GenericSubFeature]
+  }
+  deriving (Show, Eq)
+
+data Attribute = Flag {
+    flagType :: String
+  }
+  |
+  Field {
+    fieldType :: String,
+    fieldValue :: String 
+  }
+  | 
+  GOTerms {
+    goterms :: GOterm
+  }
+  deriving (Show, Eq)
+
+data GenericSubFeature = GenericSubFeature 
+  {  
+     subFeatureType :: String,
+     subFeatureAttributes :: [Attribute],
+     subfeatureDbXref :: [DbXRef],
+     subFeatureTranslation :: Maybe SeqData
   }
   deriving (Show, Eq)
 
