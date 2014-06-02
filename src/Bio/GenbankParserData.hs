@@ -34,7 +34,8 @@ data GenbankGeneric = GenbankGeneric
   deriving (Show, Eq)
 
 data GenericFeature = GenericFeature {
-     featuretype :: String,
+     featureType :: String,
+     genericFeatureCoordinates :: Coordinates,
      attibutes :: [Attribute],
      featureDbXref :: [DbXRef],
      genericSubFeatures :: [GenericSubFeature]
@@ -42,22 +43,25 @@ data GenericFeature = GenericFeature {
   deriving (Show, Eq)
 
 data Attribute = Flag {
-    flagType :: String
+      flagType :: String
   }
   |
   Field {
     fieldType :: String,
     fieldValue :: String 
   }
-  | 
-  GOTerms {
-    goterms :: GOterm
+  |
+  GOattribute {
+     gotype :: String,
+     goid :: String,
+     goname :: String
   }
   deriving (Show, Eq)
 
 data GenericSubFeature = GenericSubFeature 
   {  
      subFeatureType :: String,
+     subFeatureCoordinates :: CoordinateSet,
      subFeatureAttributes :: [Attribute],
      subfeatureDbXref :: [DbXRef],
      subFeatureTranslation :: Maybe SeqData

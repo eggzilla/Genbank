@@ -17,6 +17,116 @@ import Data.Maybe
 import Bio.Core.Sequence
 import qualified Data.ByteString.Lazy.Char8 as L
 
+--------------------------------------------------
+--Generic parsing fucntions:
+
+-- | Parse the input as Genbank datatype
+genParserGenbankGeneric :: GenParser Char st GenbankGeneric
+genParserGenbankGeneric = do
+  string "LOCUS"
+  many1 space
+  locus <- many1 (noneOf " ")
+  many1 space
+  length <- many1 (noneOf " ")
+  string " bp"
+  many1 space
+  moleculeType <- many1 (noneOf " ")
+  many1 space
+  circular <- many1 (noneOf " ")
+  many1 space
+  division <- many1 (noneOf " ")
+  many1 space
+  creationDate <- many1 (noneOf "\n")
+  newline
+  definition <- genParserField "DEFINITION" "ACCESSION"
+  accession <- genParserField "ACCESSION" "VERSION"
+  string "VERSION"
+  many1 space
+  version <- many1 (noneOf " ")
+  many1 space
+  geneIdentifier <- many1 (noneOf "\n")
+  newline
+  dblink <- genParserField "DBLINK" "KEYWORDS"
+  keywords <- genParserField "KEYWORDS" "SOURCE"
+  source <- genParserField "SOURCE" "ORGANISM"
+  organism <- genParserField "ORGANISM" "REFERENCE"
+  references <- many1 genParserReference
+  comment <- genParserField "COMMENT" "FEATURES"
+  string "FEATURES"
+  many1 space
+  string "Location/Qualifiers"
+  newline
+  features <- many genParserGenericFeature
+  contig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
+  string "ORIGIN"
+  many (string " ")
+  newline
+  origin <- many1 genParserOriginSequence
+  string "//"
+  newline
+  return $ GenbankGeneric locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features Nothing (origintoSeqData origin) 
+
+genParserGenericFeature :: GenParser Char st GenericFeature
+genParserGenericFeature = do
+  string "     "
+  featureType <- choice [(string "gene") , (string "repeat_region")]
+  many1 space
+  genericFeatureCoordinates <- genParserCoordinates
+  attibutes <- many genParserAttributes
+  geneDbXref <- many (try genParseDbXRef)
+  subFeatures <- many (genParserGenericSubFeature) 
+  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
+  return $ GenericFeature featureType genericFeatureCoordinates attibutes geneDbXref subFeatures
+
+genParserAttributes :: GenParser Char st Attribute
+genParserAttributes = choice [(try genParseGOattribute), (try genParserFlagAttribute), (try genParserAttribute)]
+
+genParserAttribute :: GenParser Char st Attribute
+genParserAttribute = do
+  many1 space
+  string "/"
+  fieldName <- many1 (noneOf "=")
+  string "="
+  stringField <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return $ Field fieldName stringField
+
+genParserGenericSubFeature :: GenParser Char st GenericSubFeature
+genParserGenericSubFeature = do
+  string "     "
+  subFeatureType <- many1 (noneOf " ")
+  many1 space
+  subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
+  attibutes <- many genParserAttributes
+  geneDbXref <- many (try genParseDbXRef)
+  subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
+  return $ GenericSubFeature subFeatureType subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
+
+genParseGOattribute :: GenParser Char st Attribute
+genParseGOattribute = do
+  many1 space
+  string "/GO_"
+  goType <- many1 (noneOf "=")
+  string "=\""
+  goId <- many1 (noneOf "-")
+  string "-"
+  goName <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return $ GOattribute goType goId goName
+
+genParserFlagAttribute :: GenParser Char st Attribute
+genParserFlagAttribute = do
+  many1 space
+  string "/"
+  flagType <- many1 (noneOf "\n")
+  newline
+  return $ Flag flagType
+
+--------------------------------------------------
+--Explicit parsing functions:
+
 -- | Parse the input as Genbank datatype
 genParserGenbank :: GenParser Char st Genbank
 genParserGenbank = do
