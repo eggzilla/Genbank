@@ -22,5 +22,5 @@ main = do
                                       
   -- read Clustal outputfile
   --input_file_content <- readFile input_file                       
-  parsedinput <- readGenbank input_file 
+  parsedinput <- readGenbankGeneric input_file 
   print parsedinput

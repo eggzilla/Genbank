@@ -3,6 +3,8 @@
 module Bio.GenbankParser (
                        parseGenbank,
                        readGenbank,
+                       parseGenbankGeneric,
+                       readGenbankGeneric,
                        module Bio.GenbankParserData
                       ) where
 
@@ -69,24 +71,24 @@ genParserGenbankGeneric = do
 genParserGenericFeature :: GenParser Char st GenericFeature
 genParserGenericFeature = do
   string "     "
-  featureType <- choice [(string "gene") , (string "repeat_region")]
+  featureType <- choice [(try (string "gene")) , (try (string "repeat_region")), (try (string "source"))]
   many1 space
   genericFeatureCoordinates <- genParserCoordinates
-  attibutes <- many genParserAttributes
+  attibutes <- many (try genParserAttributes)
   geneDbXref <- many (try genParseDbXRef)
-  subFeatures <- many (genParserGenericSubFeature) 
+  subFeatures <- many (try genParserGenericSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
   return $ GenericFeature featureType genericFeatureCoordinates attibutes geneDbXref subFeatures
 
 genParserAttributes :: GenParser Char st Attribute
-genParserAttributes = choice [(try genParseGOattribute), (try genParserFlagAttribute), (try genParserAttribute)]
+genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
 
 genParserAttribute :: GenParser Char st Attribute
 genParserAttribute = do
   many1 space
   string "/"
   fieldName <- many1 (noneOf "=")
-  string "="
+  string "=\""
   stringField <- many1 (noneOf "\"")
   string "\""
   newline
@@ -98,7 +100,7 @@ genParserGenericSubFeature = do
   subFeatureType <- many1 (noneOf " ")
   many1 space
   subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
-  attibutes <- many genParserAttributes
+  attibutes <- many (try genParserAttributes)
   geneDbXref <- many (try genParseDbXRef)
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
   return $ GenericSubFeature subFeatureType subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
@@ -123,6 +125,14 @@ genParserFlagAttribute = do
   flagType <- many1 (noneOf "\n")
   newline
   return $ Flag flagType
+
+-- | 
+parseGenbankGeneric input = parse genParserGenbankGeneric "genParserGenbank" input
+
+-- |                      
+readGenbankGeneric :: String -> IO (Either ParseError GenbankGeneric)          
+readGenbankGeneric filePath = parseFromFile genParserGenbankGeneric filePath
+
 
 --------------------------------------------------
 --Explicit parsing functions:
