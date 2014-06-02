@@ -5,31 +5,8 @@
 module Bio.GenbankParserData where
 import Bio.Core.Sequence
     
--- | 
-data Genbank = Genbank
-  {
-    locus :: String,
-    genbankLength :: Int,
-    -- DNA/RNA/Protein
-    moleculeType :: String,
-    circular :: String,
-    division :: String,
-    creationDate:: String,
-    definition :: String,
-    accession :: String,
-    version :: String,
-    geneIdentifier :: String,
-    dblink :: String,
-    keywords :: String,
-    source :: String,
-    organism :: String,
-    references :: [Reference],
-    comment :: String,
-    features :: Features,
-    contig :: Maybe String,
-    origin :: SeqData
-  }
-  deriving (Show, Eq)
+--------------------------------------------------
+--Generic parser types
 
 data GenbankGeneric = GenbankGeneric
   {
@@ -53,35 +30,6 @@ data GenbankGeneric = GenbankGeneric
     genericFeatures :: [GenericFeature],
     genericContig :: Maybe String,
     genericOrigin :: SeqData
-  }
-  deriving (Show, Eq)
-
-data Reference = Reference
-  {
-     index :: Int,
-     baseFrom :: Int,
-     baseTo :: Int,
-     authors :: String,
-     title :: String,
-     journal :: String,
-     pubmedId :: Maybe String,
-     remark :: Maybe String
-  }
-  deriving (Show, Eq)
-
-data Features = Features
-  {
-     sourceCoordinates :: Coordinates,
-     sourceOrganism :: String,
-     sourceMoleculeType :: String,
-     sourceStrain :: Maybe String,
-     sourceSubStrain :: Maybe String,
-     sourceSerovar :: Maybe String,
-     sourceIsolationSource :: Maybe String,
-     sourceSubSpecies :: Maybe String,
-     sourceDbXref :: [DbXRef],
-     sourceCollectionDate :: Maybe String,
-     genes :: [Feature] 
   }
   deriving (Show, Eq)
 
@@ -113,6 +61,64 @@ data GenericSubFeature = GenericSubFeature
      subFeatureAttributes :: [Attribute],
      subfeatureDbXref :: [DbXRef],
      subFeatureTranslation :: Maybe SeqData
+  }
+  deriving (Show, Eq)
+
+--------------------------------------------------
+--Explicit parser types
+
+-- | 
+data Genbank = Genbank
+  {
+    locus :: String,
+    genbankLength :: Int,
+    -- DNA/RNA/Protein
+    moleculeType :: String,
+    circular :: String,
+    division :: String,
+    creationDate:: String,
+    definition :: String,
+    accession :: String,
+    version :: String,
+    geneIdentifier :: String,
+    dblink :: String,
+    keywords :: String,
+    source :: String,
+    organism :: String,
+    references :: [Reference],
+    comment :: String,
+    features :: Features,
+    contig :: Maybe String,
+    origin :: SeqData
+  }
+  deriving (Show, Eq)
+
+data Reference = Reference
+  {
+     index :: Int,
+     baseFrom :: Int,
+     baseTo :: Int,
+     authors :: String,
+     title :: String,
+     journal :: String,
+     pubmedId :: Maybe String,
+     remark :: Maybe String
+  }
+  deriving (Show, Eq)
+
+data Features = Features
+  {
+     sourceCoordinates :: Coordinates,
+     sourceOrganism :: String,
+     sourceMoleculeType :: String,
+     sourceStrain :: Maybe String,
+     sourceSubStrain :: Maybe String,
+     sourceSerovar :: Maybe String,
+     sourceIsolationSource :: Maybe String,
+     sourceSubSpecies :: Maybe String,
+     sourceDbXref :: [DbXRef],
+     sourceCollectionDate :: Maybe String,
+     genes :: [Feature] 
   }
   deriving (Show, Eq)
 

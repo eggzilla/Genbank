@@ -35,15 +35,7 @@ genParserGenbank = do
   many1 space
   creationDate <- many1 (noneOf "\n")
   newline
-  --string "DEFINITION"
-  --many1 space
-  --definition <- many1 (noneOf "\n")
-  --newline
   definition <- genParserField "DEFINITION" "ACCESSION"
-  --string "ACCESSION"
-  --many1 space
-  --accession <- many1 (noneOf "\n")
-  --newline
   accession <- genParserField "ACCESSION" "VERSION"
   string "VERSION"
   many1 space
@@ -51,39 +43,20 @@ genParserGenbank = do
   many1 space
   geneIdentifier <- many1 (noneOf "\n")
   newline
-  --string "DBLINK"
-  --many1 space
-  --dblink <- many1 (noneOf "\n")
-  --newline
   dblink <- genParserField "DBLINK" "KEYWORDS"
-  --string "KEYWORDS"
-  --many1 space
-  --keywords <- many1 (noneOf "\n")
-  --newline
   keywords <- genParserField "KEYWORDS" "SOURCE"
-  --string "SOURCE"
-  --many1 space
-  --source <- many1 (noneOf "\n")
-  --newline
-  --many1 space
   source <- genParserField "SOURCE" "ORGANISM"
   organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
   comment <- genParserField "COMMENT" "FEATURES"
   features <- genParserFeatures
-  --string "CONTIG"
-  --many1 space
-  --contig <- many1 (noneOf "\n")
-  --newline 
   contig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
   string "ORIGIN"
   many (string " ")
   newline
-  --origin <- many1 genParserOriginSlice
   origin <- many1 genParserOriginSequence
   string "//"
   newline
-  --many (choice [space, newline])
   return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features Nothing (origintoSeqData origin) 
 
 genParserField :: String -> String -> GenParser Char st String
@@ -266,9 +239,6 @@ genParserCDS = do
   cdsGeneSynonym <- parseStringField "gene_synonym"
   ecNumber <- many (try (parseStringField "EC_number"))
   cdsFunction  <- many (try (parseStringField "function"))
-  --ecNumber <- many (try (parseStringField "EC_number"))
-  --todo: functions and ec are sometimes swaped
-  --many (try (parseStringField "function"))
   experiment <- many (try (parseStringField "experiment"))
   cdsRibosomalSlippage <- optionMaybe (try (parseFlag "ribosomal_slippage"))
   cdsGOterms <- many (try genParseGOterm)
