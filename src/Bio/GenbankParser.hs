@@ -20,7 +20,7 @@ import Bio.Core.Sequence
 import qualified Data.ByteString.Lazy.Char8 as L
 
 --------------------------------------------------
---Generic parsing fucntions:
+--Generic parsing functions:
 
 -- | Parse the input as Genbank datatype
 genParserGenbankGeneric :: GenParser Char st GenbankGeneric
@@ -66,7 +66,7 @@ genParserGenbankGeneric = do
   origin <- many1 genParserOriginSequence
   string "//"
   newline
-  return $ GenbankGeneric locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features Nothing (origintoSeqData origin) 
+  return $ GenbankGeneric (L.pack locus) (readInt length) (L.pack moleculeType) (L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (L.pack comment) features contig (origintoSeqData origin) 
 
 genParserGenericFeature :: GenParser Char st GenericFeature
 genParserGenericFeature = do

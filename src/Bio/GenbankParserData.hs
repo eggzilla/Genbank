@@ -4,29 +4,29 @@
 
 module Bio.GenbankParserData where
 import Bio.Core.Sequence
-    
+import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------
 --Generic parser types
 
 data GenbankGeneric = GenbankGeneric
   {
-    genericlocus :: String,
+    genericLocus :: L.ByteString,
     genericGenbankLength :: Int,
     -- DNA/RNA/Protein
-    genericMoleculeType :: String,
-    genericCircular :: String,
-    genericDivision :: String,
-    genericCreationDate:: String,
-    genericDefinition :: String,
-    genericAccession :: String,
-    genericVersion :: String,
-    genericGeneIdentifier :: String,
-    genericDblink :: String,
-    genericKeywords :: String,
-    genericSource :: String,
-    genericOrganism :: String,
+    genericMoleculeType :: L.ByteString,
+    genericCircular :: L.ByteString,
+    genericDivision :: L.ByteString,
+    genericCreationDate:: L.ByteString,
+    genericDefinition :: L.ByteString,
+    genericAccession :: L.ByteString,
+    genericVersion :: L.ByteString,
+    genericGeneIdentifier :: L.ByteString,
+    genericDblink :: L.ByteString,
+    genericKeywords :: L.ByteString,
+    genericSource :: L.ByteString,
+    genericOrganism :: L.ByteString,
     genericReferences :: [Reference],
-    genericComment :: String,
+    genericComment :: L.ByteString,
     genericFeatures :: [GenericFeature],
     genericContig :: Maybe String,
     genericOrigin :: SeqData
