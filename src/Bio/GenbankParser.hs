@@ -78,7 +78,7 @@ genParserGenericFeature = do
   geneDbXref <- many (try genParseDbXRef)
   subFeatures <- many (try genParserGenericSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
-  return $ GenericFeature featureType genericFeatureCoordinates attibutes geneDbXref subFeatures
+  return $ GenericFeature (L.pack featureType) genericFeatureCoordinates attibutes geneDbXref subFeatures
 
 genParserAttributes :: GenParser Char st Attribute
 genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
@@ -92,7 +92,7 @@ genParserAttribute = do
   stringField <- many1 (noneOf "\"")
   string "\""
   newline
-  return $ Field fieldName stringField
+  return $ Field (L.pack fieldName) (L.pack stringField)
 
 genParserGenericSubFeature :: GenParser Char st GenericSubFeature
 genParserGenericSubFeature = do
@@ -103,7 +103,7 @@ genParserGenericSubFeature = do
   attibutes <- many (try genParserAttributes)
   geneDbXref <- many (try genParseDbXRef)
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
-  return $ GenericSubFeature subFeatureType subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
+  return $ GenericSubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
 
 genParseGOattribute :: GenParser Char st Attribute
 genParseGOattribute = do
@@ -116,7 +116,7 @@ genParseGOattribute = do
   goName <- many1 (noneOf "\"")
   string "\""
   newline
-  return $ GOattribute goType goId goName
+  return $ GOattribute (L.pack goType) (L.pack goId) (L.pack goName)
 
 genParserFlagAttribute :: GenParser Char st Attribute
 genParserFlagAttribute = do
@@ -124,7 +124,7 @@ genParserFlagAttribute = do
   string "/"
   flagType <- many1 (noneOf "\n")
   newline
-  return $ Flag flagType
+  return $ Flag (L.pack flagType)
 
 -- | 
 parseGenbankGeneric input = parse genParserGenbankGeneric "genParserGenbank" input
@@ -521,7 +521,7 @@ genParseDbXRef = do
   ref <- many1 (noneOf "\"")
   string "\""
   newline
-  return $ DbXRef db ref
+  return $ DbXRef (L.pack db) (L.pack ref)
   
 -- | 
 parseGenbank input = parse genParserGenbank "genParserGenbank" input
