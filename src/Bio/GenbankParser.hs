@@ -3,8 +3,8 @@
 module Bio.GenbankParser (
                        parseGenbank,
                        readGenbank,
-                       parseGenbankGeneric,
-                       readGenbankGeneric,
+                       parseGenbankExplicit,
+                       readGenbankExplicit,
                        module Bio.GenbankParserData
                       ) where
 
@@ -21,121 +21,6 @@ import qualified Data.ByteString.Lazy.Char8 as L
 
 --------------------------------------------------
 --Generic parsing functions:
-
--- | Parse the input as Genbank datatype
-genParserGenbankGeneric :: GenParser Char st GenbankGeneric
-genParserGenbankGeneric = do
-  string "LOCUS"
-  many1 space
-  locus <- many1 (noneOf " ")
-  many1 space
-  length <- many1 (noneOf " ")
-  string " bp"
-  many1 space
-  moleculeType <- many1 (noneOf " ")
-  many1 space
-  circular <- many1 (noneOf " ")
-  many1 space
-  division <- many1 (noneOf " ")
-  many1 space
-  creationDate <- many1 (noneOf "\n")
-  newline
-  definition <- genParserField "DEFINITION" "ACCESSION"
-  accession <- genParserField "ACCESSION" "VERSION"
-  string "VERSION"
-  many1 space
-  version <- many1 (noneOf " ")
-  many1 space
-  geneIdentifier <- many1 (noneOf "\n")
-  newline
-  dblink <- genParserField "DBLINK" "KEYWORDS"
-  keywords <- genParserField "KEYWORDS" "SOURCE"
-  source <- genParserField "SOURCE" "ORGANISM"
-  organism <- genParserField "ORGANISM" "REFERENCE"
-  references <- many1 genParserReference
-  comment <- genParserField "COMMENT" "FEATURES"
-  string "FEATURES"
-  many1 space
-  string "Location/Qualifiers"
-  newline
-  features <- many genParserGenericFeature
-  contig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
-  string "ORIGIN"
-  many (string " ")
-  newline
-  origin <- many1 genParserOriginSequence
-  string "//"
-  newline
-  return $ GenbankGeneric (L.pack locus) (readInt length) (L.pack moleculeType) (L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (L.pack comment) features contig (origintoSeqData origin) 
-
-genParserGenericFeature :: GenParser Char st GenericFeature
-genParserGenericFeature = do
-  string "     "
-  featureType <- choice [(try (string "gene")) , (try (string "repeat_region")), (try (string "source"))]
-  many1 space
-  genericFeatureCoordinates <- genParserCoordinates
-  attibutes <- many (try genParserAttributes)
-  geneDbXref <- many (try genParseDbXRef)
-  subFeatures <- many (try genParserGenericSubFeature) 
-  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
-  return $ GenericFeature (L.pack featureType) genericFeatureCoordinates attibutes geneDbXref subFeatures
-
-genParserAttributes :: GenParser Char st Attribute
-genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
-
-genParserAttribute :: GenParser Char st Attribute
-genParserAttribute = do
-  many1 space
-  string "/"
-  fieldName <- many1 (noneOf "=")
-  string "=\""
-  stringField <- many1 (noneOf "\"")
-  string "\""
-  newline
-  return $ Field (L.pack fieldName) (L.pack stringField)
-
-genParserGenericSubFeature :: GenParser Char st GenericSubFeature
-genParserGenericSubFeature = do
-  string "     "
-  subFeatureType <- many1 (noneOf " ")
-  many1 space
-  subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
-  attibutes <- many (try genParserAttributes)
-  geneDbXref <- many (try genParseDbXRef)
-  subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
-  return $ GenericSubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
-
-genParseGOattribute :: GenParser Char st Attribute
-genParseGOattribute = do
-  many1 space
-  string "/GO_"
-  goType <- many1 (noneOf "=")
-  string "=\""
-  goId <- many1 (noneOf "-")
-  string "-"
-  goName <- many1 (noneOf "\"")
-  string "\""
-  newline
-  return $ GOattribute (L.pack goType) (L.pack goId) (L.pack goName)
-
-genParserFlagAttribute :: GenParser Char st Attribute
-genParserFlagAttribute = do
-  many1 space
-  string "/"
-  flagType <- many1 (noneOf "\n")
-  newline
-  return $ Flag (L.pack flagType)
-
--- | 
-parseGenbankGeneric input = parse genParserGenbankGeneric "genParserGenbank" input
-
--- |                      
-readGenbankGeneric :: String -> IO (Either ParseError GenbankGeneric)          
-readGenbankGeneric filePath = parseFromFile genParserGenbankGeneric filePath
-
-
---------------------------------------------------
---Explicit parsing functions:
 
 -- | Parse the input as Genbank datatype
 genParserGenbank :: GenParser Char st Genbank
@@ -169,7 +54,11 @@ genParserGenbank = do
   organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
   comment <- genParserField "COMMENT" "FEATURES"
-  features <- genParserFeatures
+  string "FEATURES"
+  many1 space
+  string "Location/Qualifiers"
+  newline
+  features <- many genParserFeature
   contig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
   string "ORIGIN"
   many (string " ")
@@ -177,7 +66,118 @@ genParserGenbank = do
   origin <- many1 genParserOriginSequence
   string "//"
   newline
-  return $ Genbank locus (readInt length) moleculeType circular division creationDate definition accession version geneIdentifier dblink keywords source organism references comment features Nothing (origintoSeqData origin) 
+  return $ Genbank (L.pack locus) (readInt length) (L.pack moleculeType) (L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (L.pack comment) features contig (origintoSeqData origin) 
+
+genParserFeature :: GenParser Char st Feature
+genParserFeature = do
+  string "     "
+  featureType <- choice [(try (string "gene")) , (try (string "repeat_region")), (try (string "source"))]
+  many1 space
+  genericFeatureCoordinates <- genParserCoordinates
+  attibutes <- many (try genParserAttributes)
+  geneDbXref <- many (try genParseDbXRef)
+  subFeatures <- many (try genParserSubFeature) 
+  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
+  return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes geneDbXref subFeatures
+
+genParserAttributes :: GenParser Char st Attribute
+genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
+
+genParserAttribute :: GenParser Char st Attribute
+genParserAttribute = do
+  many1 space
+  string "/"
+  fieldName <- many1 (noneOf "=")
+  string "=\""
+  stringField <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return $ Field (L.pack fieldName) (L.pack stringField)
+
+genParserSubFeature :: GenParser Char st SubFeature
+genParserSubFeature = do
+  string "     "
+  subFeatureType <- many1 (noneOf " ")
+  many1 space
+  subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
+  attibutes <- many (try genParserAttributes)
+  geneDbXref <- many (try genParseDbXRef)
+  subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
+  return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
+
+genParseGOattribute :: GenParser Char st Attribute
+genParseGOattribute = do
+  many1 space
+  string "/GO_"
+  goType <- many1 (noneOf "=")
+  string "=\""
+  goId <- many1 (noneOf "-")
+  string "-"
+  goName <- many1 (noneOf "\"")
+  string "\""
+  newline
+  return $ GOattribute (L.pack goType) (L.pack goId) (L.pack goName)
+
+genParserFlagAttribute :: GenParser Char st Attribute
+genParserFlagAttribute = do
+  many1 space
+  string "/"
+  flagType <- many1 (noneOf "\n")
+  newline
+  return $ Flag (L.pack flagType)
+
+-- | 
+parseGenbank input = parse genParserGenbank "genParserGenbank" input
+
+-- |                      
+readGenbank :: String -> IO (Either ParseError Genbank)          
+readGenbank filePath = parseFromFile genParserGenbank filePath
+
+
+--------------------------------------------------
+--Explicit parsing functions:
+
+-- | Parse the input as Genbank datatype
+genParserGenbankExplicit :: GenParser Char st GenbankExplicit
+genParserGenbankExplicit = do
+  string "LOCUS"
+  many1 space
+  elocus <- many1 (noneOf " ")
+  many1 space
+  elength <- many1 (noneOf " ")
+  string " bp"
+  many1 space
+  emoleculeType <- many1 (noneOf " ")
+  many1 space
+  ecircular <- many1 (noneOf " ")
+  many1 space
+  edivision <- many1 (noneOf " ")
+  many1 space
+  ecreationDate <- many1 (noneOf "\n")
+  newline
+  edefinition <- genParserField "DEFINITION" "ACCESSION"
+  eaccession <- genParserField "ACCESSION" "VERSION"
+  string "VERSION"
+  many1 space
+  eversion <- many1 (noneOf " ")
+  many1 space
+  egeneIdentifier <- many1 (noneOf "\n")
+  newline
+  edblink <- genParserField "DBLINK" "KEYWORDS"
+  ekeywords <- genParserField "KEYWORDS" "SOURCE"
+  esource <- genParserField "SOURCE" "ORGANISM"
+  eorganism <- genParserField "ORGANISM" "REFERENCE"
+  ereferences <- many1 genParserReference
+  ecomment <- genParserField "COMMENT" "FEATURES"
+  efeatures <- genParserFeaturesExplicit
+  econtig <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
+  string "ORIGIN"
+  many (string " ")
+  newline
+  eorigin <- many1 genParserOriginSequence
+  string "//"
+  newline
+  return $ GenbankExplicit elocus (readInt elength) emoleculeType ecircular edivision ecreationDate edefinition eaccession eversion egeneIdentifier edblink ekeywords esource eorganism ereferences ecomment efeatures econtig (origintoSeqData eorigin) 
 
 genParserField :: String -> String -> GenParser Char st String
 genParserField fieldStart fieldEnd = do 
@@ -227,8 +227,8 @@ genParserReference = do
   journal <- choice [(try (genParserField "JOURNAL" "REFERENCE")), (genParserField "JOURNAL" "COMMENT")]
   return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
-genParserFeatures :: GenParser Char st Features
-genParserFeatures = do
+genParserFeaturesExplicit :: GenParser Char st FeaturesExplicit
+genParserFeaturesExplicit = do
   string "FEATURES"
   many1 space
   string "Location/Qualifiers"
@@ -246,15 +246,15 @@ genParserFeatures = do
   sourceSubSpecies  <- optionMaybe (try (parseStringField "sub_species"))
   sourceDbXref <- many1 (try genParseDbXRef)
   sourceCollectionDate <- optionMaybe (try (parseStringField "collection_date"))
-  genes <- many (try genParserFeature)
-  return $ Features sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceSeroVar sourceIsolationSource sourceSubSpecies sourceDbXref sourceCollectionDate genes
+  egenes <- many (try genParserFeatureExplicit)
+  return $ FeaturesExplicit sourceCoordinates sourceOrganism sourceMoleculeType sourceStrain sourceSubStrain sourceSeroVar sourceIsolationSource sourceSubSpecies sourceDbXref sourceCollectionDate egenes
 
-genParserFeature :: GenParser Char st Feature
-genParserFeature = do
+genParserFeatureExplicit :: GenParser Char st FeatureExplicit
+genParserFeatureExplicit = do
   feature <- choice [(try genParserGene), (try genParserRepeatRegion)]
   return feature
 
-genParserRepeatRegion :: GenParser Char st Feature
+genParserRepeatRegion :: GenParser Char st FeatureExplicit
 genParserRepeatRegion = do
   string "     repeat_region"
   many1 space
@@ -262,7 +262,7 @@ genParserRepeatRegion = do
   repeatNote <- optionMaybe (parseStringField "note")
   return $ RepeatRegion repeatCoordinates repeatNote
 
-genParserGene :: GenParser Char st Feature
+genParserGene :: GenParser Char st FeatureExplicit
 genParserGene = do
   string "     gene"
   many1 space
@@ -274,7 +274,7 @@ genParserGene = do
   geneNote <- optionMaybe (try (parseStringField "note"))
   genePseudo <- optionMaybe (try (parseFlag "pseudo"))
   geneDbXref <- many (try genParseDbXRef)
-  subFeatures <- many (genParserSubFeature) 
+  subFeatures <- many (genParserSubFeatureExplicit) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
   return $ Gene geneCoordinates geneName locusTag oldLocusTag geneSynonym geneNote (isJust genePseudo) geneDbXref subFeatures
 
@@ -290,12 +290,12 @@ geneAhead = do
 repeatAhead= do
   lookAhead (string "     repeat")
 
-genParserSubFeature :: GenParser Char st SubFeature
-genParserSubFeature = do
+genParserSubFeatureExplicit :: GenParser Char st SubFeatureExplicit
+genParserSubFeatureExplicit = do
   subFeature <- choice [(try genParserMiscFeature),(try genParserNcRNA),(try genParserMobileElement),(try genParserCDS),(try genParserSTS), (try genParsertRNA), (try genParserRRNA), (try genParsertmRNA), (try genParserRepOrigin)]
   return subFeature
 
-genParserSTS :: GenParser Char st SubFeature
+genParserSTS :: GenParser Char st SubFeatureExplicit
 genParserSTS = do
   string "     STS"
   many1 space
@@ -307,7 +307,7 @@ genParserSTS = do
   stsDbXref <- many1 (try genParseDbXRef)
   return $ STS stsCoordinates stsGeneName stsLocusTag stsGeneSynonym standardName stsDbXref
 
-genParsertRNA :: GenParser Char st SubFeature
+genParsertRNA :: GenParser Char st SubFeatureExplicit
 genParsertRNA = do
   string "     tRNA"
   many1 space
@@ -321,7 +321,7 @@ genParsertRNA = do
   tRNADbXref <- many1 (try genParseDbXRef)
   return $ TRNA tRNACoordinates tRNAGeneName tRNALocusTag tRNAGeneSynonym tRNAProduct tRNANote (isJust tRNAPseudo) tRNADbXref 
 
-genParsertmRNA :: GenParser Char st SubFeature
+genParsertmRNA :: GenParser Char st SubFeatureExplicit
 genParsertmRNA = do
   string "     tmRNA"
   many1 space
@@ -336,7 +336,7 @@ genParsertmRNA = do
   tmRNADbXref <- many1 (try genParseDbXRef)
   return $ TMRNA tmRNACoordinates tmRNAGeneName tmRNALocusTag tmRNAGeneSynonym tmRNAProduct tmRNANote tmRNAFunction (isJust tmRNAPseudo) tmRNADbXref 
 
-genParserRRNA :: GenParser Char st SubFeature
+genParserRRNA :: GenParser Char st SubFeatureExplicit
 genParserRRNA = do
   string "     rRNA"
   many1 space
@@ -348,7 +348,7 @@ genParserRRNA = do
   rRNADbXref <- many1 (try genParseDbXRef)
   return $ RRNA rRNACoordinates rRNAGeneName rRNALocusTag rRNAGeneSynonym rRNAProduct rRNADbXref 
 
-genParserCDS :: GenParser Char st SubFeature
+genParserCDS :: GenParser Char st SubFeatureExplicit
 genParserCDS = do
   string "     CDS"
   many1 space
@@ -381,7 +381,7 @@ translationtoSeqData translationInput
   | (isJust translationInput) = Just (SeqData $ (L.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
   | otherwise = Nothing 
 
-genParserMiscFeature :: GenParser Char st SubFeature
+genParserMiscFeature :: GenParser Char st SubFeatureExplicit
 genParserMiscFeature = do
   string "     misc_feature"
   many1 space
@@ -393,7 +393,7 @@ genParserMiscFeature = do
   miscDbXref <- many (try genParseDbXRef)
   return $ MiscFeature miscCoordinates miscGeneName miscLocusTag miscGeneSynonym miscNote miscDbXref
 
-genParserNcRNA  :: GenParser Char st SubFeature
+genParserNcRNA  :: GenParser Char st SubFeatureExplicit
 genParserNcRNA = do
   string "     ncRNA"
   many1 space
@@ -409,7 +409,7 @@ genParserNcRNA = do
   ncRNADbXref <- many1 (try genParseDbXRef)
   return $ NcRNA ncRNACoordinates ncRNAGeneName ncRNALocusTag ncRNAGeneSynonym ncRNAClass ncRNAProduct ncRNANote (isJust ncRNAPseudo) ncRNAFunction ncRNADbXref
 
-genParserMobileElement :: GenParser Char st SubFeature
+genParserMobileElement :: GenParser Char st SubFeatureExplicit
 genParserMobileElement = do
   string "     mobile_element"
   many1 space
@@ -417,7 +417,7 @@ genParserMobileElement = do
   mobileType <- parseStringField "mobile_element_type"
   return $ MobileElement mobileElementCoordinates mobileType
 
-genParserRepOrigin :: GenParser Char st SubFeature
+genParserRepOrigin :: GenParser Char st SubFeatureExplicit
 genParserRepOrigin = do
   string "     rep_origin"
   many1 space
@@ -524,11 +524,11 @@ genParseDbXRef = do
   return $ DbXRef (L.pack db) (L.pack ref)
   
 -- | 
-parseGenbank input = parse genParserGenbank "genParserGenbank" input
+parseGenbankExplicit input = parse genParserGenbankExplicit "genParserGenbank" input
 
 -- |                      
-readGenbank :: String -> IO (Either ParseError Genbank)          
-readGenbank filePath = parseFromFile genParserGenbank filePath
+readGenbankExplicit :: String -> IO (Either ParseError GenbankExplicit)          
+readGenbankExplicit filePath = parseFromFile genParserGenbankExplicit filePath
 
 -- auxiliary functions
 readDouble :: String -> Double

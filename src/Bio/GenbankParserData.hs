@@ -8,37 +8,37 @@ import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------
 --Generic parser types
 
-data GenbankGeneric = GenbankGeneric
+data Genbank = Genbank
   {
-    genericLocus :: L.ByteString,
-    genericGenbankLength :: Int,
+    locus :: L.ByteString,
+    genbankLength :: Int,
     -- DNA/RNA/Protein
-    genericMoleculeType :: L.ByteString,
-    genericCircular :: L.ByteString,
-    genericDivision :: L.ByteString,
-    genericCreationDate:: L.ByteString,
-    genericDefinition :: L.ByteString,
-    genericAccession :: L.ByteString,
-    genericVersion :: L.ByteString,
-    genericGeneIdentifier :: L.ByteString,
-    genericDblink :: L.ByteString,
-    genericKeywords :: L.ByteString,
-    genericSource :: L.ByteString,
-    genericOrganism :: L.ByteString,
-    genericReferences :: [Reference],
-    genericComment :: L.ByteString,
-    genericFeatures :: [GenericFeature],
-    genericContig :: Maybe String,
-    genericOrigin :: SeqData
+    moleculeType :: L.ByteString,
+    circular :: L.ByteString,
+    division :: L.ByteString,
+    creationDate:: L.ByteString,
+    definition :: L.ByteString,
+    accession :: L.ByteString,
+    version :: L.ByteString,
+    geneIdentifier :: L.ByteString,
+    dblink :: L.ByteString,
+    keywords :: L.ByteString,
+    source :: L.ByteString,
+    organism :: L.ByteString,
+    references :: [Reference],
+    comment :: L.ByteString,
+    features :: [Feature],
+    contig :: Maybe String,
+    origin :: SeqData
   }
   deriving (Show, Eq)
 
-data GenericFeature = GenericFeature {
+data Feature = Feature {
      featureType :: L.ByteString,
-     genericFeatureCoordinates :: Coordinates,
+     featureCoordinates :: Coordinates,
      attibutes :: [Attribute],
      featureDbXref :: [DbXRef],
-     genericSubFeatures :: [GenericSubFeature]
+     subFeatures :: [SubFeature]
   }
   deriving (Show, Eq)
 
@@ -58,7 +58,7 @@ data Attribute = Flag {
   }
   deriving (Show, Eq)
 
-data GenericSubFeature = GenericSubFeature 
+data SubFeature = SubFeature 
   {  
      subFeatureType :: L.ByteString,
      subFeatureCoordinates :: CoordinateSet,
@@ -72,28 +72,28 @@ data GenericSubFeature = GenericSubFeature
 --Explicit parser types
 
 -- | 
-data Genbank = Genbank
+data GenbankExplicit = GenbankExplicit
   {
-    locus :: String,
-    genbankLength :: Int,
+    elocus :: String,
+    egenbankLength :: Int,
     -- DNA/RNA/Protein
-    moleculeType :: String,
-    circular :: String,
-    division :: String,
-    creationDate:: String,
-    definition :: String,
-    accession :: String,
-    version :: String,
-    geneIdentifier :: String,
-    dblink :: String,
-    keywords :: String,
-    source :: String,
-    organism :: String,
-    references :: [Reference],
-    comment :: String,
-    features :: Features,
-    contig :: Maybe String,
-    origin :: SeqData
+    emoleculeType :: String,
+    ecircular :: String,
+    edivision :: String,
+    ecreationDate:: String,
+    edefinition :: String,
+    eaccession :: String,
+    eversion :: String,
+    egeneIdentifier :: String,
+    edblink :: String,
+    ekeywords :: String,
+    esource :: String,
+    eorganism :: String,
+    ereferences :: [Reference],
+    ecomment :: String,
+    efeatures :: FeaturesExplicit,
+    econtig :: Maybe String,
+    eorigin :: SeqData
   }
   deriving (Show, Eq)
 
@@ -110,7 +110,7 @@ data Reference = Reference
   }
   deriving (Show, Eq)
 
-data Features = Features
+data FeaturesExplicit = FeaturesExplicit
   {
      sourceCoordinates :: Coordinates,
      sourceOrganism :: String,
@@ -122,7 +122,7 @@ data Features = Features
      sourceSubSpecies :: Maybe String,
      sourceDbXref :: [DbXRef],
      sourceCollectionDate :: Maybe String,
-     genes :: [Feature] 
+     egenes :: [FeatureExplicit] 
   }
   deriving (Show, Eq)
 
@@ -134,7 +134,7 @@ data Coordinates = Coordinates
   }
   deriving (Show, Eq)
 
-data Feature = Gene {
+data FeatureExplicit = Gene {
      geneCoordinates :: CoordinateSet,
      geneName :: Maybe String,
      locusTag :: Maybe String,
@@ -143,7 +143,7 @@ data Feature = Gene {
      geneNote :: Maybe String,
      genePseudo :: Bool,
      geneDbXref :: [DbXRef],
-     subFeatures :: [SubFeature]
+     explicitSubFeatures :: [SubFeatureExplicit]
   }
   | RepeatRegion
   {
@@ -166,7 +166,7 @@ data CoordinateSet = CoordinateSet
   }
   deriving (Show, Eq)
 
-data SubFeature = CDS 
+data SubFeatureExplicit = CDS 
   {  
      cdsCoordinates :: CoordinateSet,
      cdsGeneName :: String,
