@@ -1,4 +1,4 @@
-name:                GenbankParser
+name:                Genbank
 -- The package version.  See the Haskell package versioning policy (PVP) 
 -- for standards guiding when and how versions should be incremented.
 -- http://www.haskell.org/haskellwiki/Package_versioning_policy
@@ -20,16 +20,16 @@ cabal-version:       >=1.8
 
 source-repository head
   type:     git
-  location: https://github.com/eggzilla/GenbankParser
+  location: https://github.com/eggzilla/Genbank
 
 source-repository this
   type:     git
-  location: https://github.com/eggzilla/GenbankParser/tree/v1.0.0
+  location: https://github.com/eggzilla/Genbank/tree/v1.0.0
   tag:      v1.0.0
 
 library
   -- Modules exported by the library.
-  exposed-modules:   Bio.GenbankParser, Bio.GenbankParserData
+  exposed-modules:   Bio.GenbankParser, Bio.GenbankData, Bio.GenbankTools
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore

@@ -5,10 +5,10 @@ module Bio.GenbankParser (
                        readGenbank,
                        parseGenbankExplicit,
                        readGenbankExplicit,
-                       module Bio.GenbankParserData
+                       module Bio.GenbankData
                       ) where
 
-import Bio.GenbankParserData
+import Bio.GenbankData
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language (emptyDef)    
