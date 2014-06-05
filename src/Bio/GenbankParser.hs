@@ -75,7 +75,6 @@ genParserFeature = do
   many1 space
   genericFeatureCoordinates <- genParserCoordinates
   attibutes <- many (try genParserAttributes)
-  geneDbXref <- many (try genParseDbXRef)
   subFeatures <- many (try genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
   return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes geneDbXref subFeatures
@@ -101,7 +100,6 @@ genParserSubFeature = do
   many1 space
   subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
   attibutes <- many (try genParserAttributes)
-  geneDbXref <- many (try genParseDbXRef)
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
   return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
 

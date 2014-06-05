@@ -37,7 +37,6 @@ data Feature = Feature {
      featureType :: L.ByteString,
      featureCoordinates :: Coordinates,
      attibutes :: [Attribute],
-     featureDbXref :: [DbXRef],
      subFeatures :: [SubFeature]
   }
   deriving (Show, Eq)
@@ -63,7 +62,6 @@ data SubFeature = SubFeature
      subFeatureType :: L.ByteString,
      subFeatureCoordinates :: CoordinateSet,
      subFeatureAttributes :: [Attribute],
-     subfeatureDbXref :: [DbXRef],
      subFeatureTranslation :: Maybe SeqData
   }
   deriving (Show, Eq)
