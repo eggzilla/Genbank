@@ -77,7 +77,7 @@ genParserFeature = do
   attibutes <- many (try genParserAttributes)
   subFeatures <- many (try genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
-  return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes geneDbXref subFeatures
+  return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes subFeatures
 
 genParserAttributes :: GenParser Char st Attribute
 genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
@@ -86,6 +86,7 @@ genParserAttribute :: GenParser Char st Attribute
 genParserAttribute = do
   many1 space
   string "/"
+  notFollowedBy (string "translation")
   fieldName <- many1 (noneOf "=")
   string "=\""
   stringField <- many1 (noneOf "\"")
@@ -101,7 +102,7 @@ genParserSubFeature = do
   subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
   attibutes <- many (try genParserAttributes)
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
-  return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes geneDbXref (translationtoSeqData subFeatureTranslation)
+  return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes (translationtoSeqData subFeatureTranslation)
 
 genParseGOattribute :: GenParser Char st Attribute
 genParseGOattribute = do
@@ -120,6 +121,7 @@ genParserFlagAttribute :: GenParser Char st Attribute
 genParserFlagAttribute = do
   many1 space
   string "/"
+  notFollowedBy (string "translation")
   flagType <- many1 (noneOf "\n")
   newline
   return $ Flag (L.pack flagType)
