@@ -98,8 +98,8 @@ data GenbankExplicit = GenbankExplicit
 data Reference = Reference
   {
      index :: Int,
-     baseFrom :: Int,
-     baseTo :: Int,
+     baseFrom :: Maybe Int,
+     baseTo :: Maybe Int,
      authors :: String,
      title :: String,
      journal :: String,

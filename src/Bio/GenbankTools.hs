@@ -38,7 +38,7 @@ extractSubSequence genbankSeq seqCoordinates
 
 --The following two functions are copied from Ketil Maldes hackage bio package. -- The same functionality has not been reincluded into the biocore package      
 -- | Calculate the reverse complement for SeqData only.
-revcompl' :: SeqData -> SeqData
+--revcompl' :: SeqData -> SeqData
 revcompl' = L.map compl . L.reverse
 
 -- | Complement a single character.  I.e. identify the nucleotide it 

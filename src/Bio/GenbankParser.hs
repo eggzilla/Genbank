@@ -211,21 +211,21 @@ genParserReference = do
   string "REFERENCE"
   many1 space
   index <- many1 (noneOf " ")
-  many1 space
-  string "(bases"
-  many1 space 
-  baseFrom <- many1 (noneOf " ")
-  many1 space
-  string "to"
-  many1 space
-  baseTo  <- many1 (noneOf ")")
-  string ")"
+  many space
+  optional (try (string "(bases"))
+  many space 
+  baseFrom <- optionMaybe (try (many1 (noneOf " ")))
+  many space
+  optional (try (string "to"))
+  many space
+  baseTo  <- optionMaybe (try (many1 (noneOf ")")))
+  optional (try (string ")"))
   newline
   many1 space
   authors <- choice [(genParserField "AUTHORS" "TITLE"), (genParserField "CONSRTM" "TITLE")]
   title <- genParserField "TITLE" "JOURNAL"
   journal <- choice [(try (genParserField "JOURNAL" "REFERENCE")), (genParserField "JOURNAL" "COMMENT")]
-  return $ Reference (readInt index) (readInt baseFrom) (readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
+  return $ Reference (readInt index) (liftM readInt baseFrom) (liftM readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
 genParserFeaturesExplicit :: GenParser Char st FeaturesExplicit
 genParserFeaturesExplicit = do
