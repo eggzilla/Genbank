@@ -210,15 +210,15 @@ genParserReference :: GenParser Char st Reference
 genParserReference = do
   string "REFERENCE"
   many1 space
-  index <- many1 (noneOf " ")
-  many space
+  index <- many1 digit
+  many (string " ")
   optional (try (string "(bases"))
-  many space 
-  baseFrom <- optionMaybe (try (many1 (noneOf " ")))
-  many space
+  many (string " ")
+  baseFrom <- optionMaybe (try (many1 digit))
+  many (string " ")
   optional (try (string "to"))
-  many space
-  baseTo  <- optionMaybe (try (many1 (noneOf ")")))
+  many (string " ")
+  baseTo  <- optionMaybe (try (many1 digit))
   optional (try (string ")"))
   newline
   many1 space
