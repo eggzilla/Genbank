@@ -35,7 +35,7 @@ data Genbank = Genbank
 
 data Feature = Feature {
      featureType :: L.ByteString,
-     featureCoordinates :: Coordinates,
+     featureCoordinates :: CoordinateSet,
      attibutes :: [Attribute],
      subFeatures :: [SubFeature]
   }

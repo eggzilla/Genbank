@@ -73,7 +73,7 @@ genParserFeature = do
   string "     "
   featureType <- choice [(try (string "gene")) , (try (string "repeat_region")), (try (string "source"))]
   many1 space
-  genericFeatureCoordinates <- genParserCoordinates
+  genericFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
   attibutes <- many (try genParserAttributes)
   subFeatures <- many (try genParserSubFeature) 
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
