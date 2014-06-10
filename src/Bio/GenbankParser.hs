@@ -97,6 +97,7 @@ genParserAttribute = do
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
   string "     "
+  notFollowedBy (choice [(string "gene"),(string "repeat_region"),(string "source")])
   subFeatureType <- many1 (noneOf " ")
   many1 space
   subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
