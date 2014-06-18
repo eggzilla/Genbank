@@ -447,16 +447,16 @@ genParserForwardPrefix prefix = do
 
 genParserForwardPrefixCoordinates :: GenParser Char st Coordinates
 genParserForwardPrefixCoordinates = do
-  optional (oneOf "><")  
+  coordinateFromEqualitySymbol <- optionMaybe (try (oneOf "><"))  
   coordinateFrom <- many1 digit
   optional (oneOf "><")
   string "."
   string "."
-  optional (oneOf "><")
+  coordinateToEqualitySymbol <- optionMaybe (try (oneOf "><"))
   coordinateTo <- many1 digit
   optional (choice [(try (string ",\n")),(try (string ","))])
   optional (many1 (string " "))
-  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
+  return $ Coordinates (readInt coordinateFrom) coordinateFromEqualitySymbol (readInt coordinateTo) coordinateToEqualitySymbol True
 
 -- | Parseing of coordinate complement coordinate lists with prefix
 genParserComplementPrefix :: String -> GenParser Char st [Coordinates]
@@ -471,29 +471,29 @@ genParserComplementPrefix prefix = do
 
 genParserForwardCoordinates :: GenParser Char st Coordinates
 genParserForwardCoordinates = do
-  optional (oneOf "><")
+  coordinateFromEqualitySymbol <- optionMaybe (try (oneOf "><"))  
   coordinateFrom <- many1 digit
   optional (oneOf "><")
   string "."
   string "."
-  optional (oneOf "><")
+  coordinateToEqualitySymbol <- optionMaybe (try (oneOf "><"))
   coordinateTo <- many1 digit
   newline
-  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) False
+  return $ Coordinates (readInt coordinateFrom) coordinateFromEqualitySymbol (readInt coordinateTo) coordinateToEqualitySymbol False
 
 genParserComplementCoordinates :: GenParser Char st Coordinates
 genParserComplementCoordinates = do
   string "complement("
-  optional (oneOf "><")
+  coordinateFromEqualitySymbol <- optionMaybe (try (oneOf "><")) 
   coordinateFrom <- many1 digit
   optional (oneOf "><")
   string "."
   string "."
-  optional (oneOf "><")
+  coordinateToEqualitySymbol <- optionMaybe (try (oneOf "><"))
   coordinateTo <- many1 digit
   string ")"
   newline
-  return $ Coordinates (readInt coordinateFrom) (readInt coordinateTo) True
+  return $ Coordinates (readInt coordinateFrom) coordinateFromEqualitySymbol (readInt coordinateTo) coordinateToEqualitySymbol True
 
 setComplement :: Bool -> [Coordinates] -> [Coordinates]
 setComplement complementBool coordinates = coordinatesWithComplement
@@ -537,6 +537,9 @@ readDouble = read
 
 readInt :: String -> Int
 readInt = read
+
+readChar :: String -> Char
+readChar = read
 
 parseStringBracketField :: String -> GenParser Char st String
 parseStringBracketField fieldname = do

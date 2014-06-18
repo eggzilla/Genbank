@@ -127,7 +127,11 @@ data FeaturesExplicit = FeaturesExplicit
 data Coordinates = Coordinates
   {
     coordinatesFrom :: Int,
+    -- leading smaller or greater than
+    coordinateFromEqualitySymbol :: Maybe Char,
     coordinatesTo :: Int,
+    -- leading smaller or greater than
+    coordinateToEqualitySymbol :: Maybe Char,
     complement :: Bool
   }
   deriving (Show, Eq)
