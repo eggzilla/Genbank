@@ -2,7 +2,8 @@
 module Bio.GenbankTools (
                        extractAllFeatureSeqData,
                        extractSpecificFeatureSeqData,
-                       
+                       extractAllFeatureSequence,
+                       extractSpecificFeatureSequence,
                        module Bio.GenbankData
                       ) where
 
@@ -29,17 +30,31 @@ extractSpecificFeatureSeqData specificFeature genbank = seqdatas
         fullSequence = origin genbank
         seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
+-- | Extract header (locus tag, Genbank ) and sequence data
+extractAllFeatureSequence :: Genbank -> [Sequence]
+extractAllFeatureSequence genbank = sequences
+  where currentAccession = L.unpack (locus genbank)
+        currentFeatures = features genbank
+        fields = [ x | x@(Field {}) <- concat (map attributes currentFeatures)]
+        locusTags = map fieldValue (filter (\field -> ((fieldType field) == (L.pack "locus_tag"))) fields)
+        currentHeaders = map (\locus_tag -> L.pack ((L.unpack locus_tag) ++ " " ++ currentAccession)) locusTags
+        coordinates = map featureCoordinates (features genbank)
+        fullSequence = origin genbank
+        seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
+        sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
+
 -- | Extract header (locus identifier, locus tag) and sequence data
 extractSpecificFeatureSequence :: String -> Genbank -> [Sequence]
 extractSpecificFeatureSequence specificFeature genbank = sequences
-  where genbankLocus = locus genbank
+  where currentAccession = L.unpack (locus genbank)
         currentFeatures = filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank)
         fields = [ x | x@(Field {}) <- concat (map attributes currentFeatures)]
         locusTags = map fieldValue (filter (\field -> ((fieldType field) == (L.pack "locus_tag"))) fields)
-        coordinates = map featureCoordinates (filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank))
+        currentHeaders = map (\locus_tag -> L.pack ((L.unpack locus_tag) ++ " " ++ currentAccession)) locusTags
+        coordinates = map featureCoordinates currentFeatures
         fullSequence = origin genbank
         seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
-        sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip locusTags seqdata
+        sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
                 
 ---------------------------
   
