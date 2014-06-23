@@ -1,7 +1,8 @@
 -- | Parse Genebank format
 module Bio.GenbankTools (
-                       extractAllFeatureSequences,
-                       extractSpecificFeatureSequences,
+                       extractAllFeatureSeqData,
+                       extractSpecificFeatureSeqData,
+                       
                        module Bio.GenbankData
                       ) where
 
@@ -11,52 +12,64 @@ import Data.List
 import Data.Maybe
 import Bio.Core.Sequence
 import Data.Int
+import Bio.Sequence.Fasta
 import qualified Data.ByteString.Lazy.Char8 as L
 
 -- |
-extractAllFeatureSequences :: Genbank -> [SeqData]
-extractAllFeatureSequences genbank = sequences
+extractAllFeatureSeqData :: Genbank -> [SeqData]
+extractAllFeatureSeqData genbank = seqdatas
   where coordinates = map featureCoordinates (features genbank)
         fullSequence = origin genbank
-        sequences = concat (map (extractSequences fullSequence) coordinates)
+        seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
 -- |
-extractSpecificFeatureSequences :: String -> Genbank -> [SeqData]
-extractSpecificFeatureSequences specificFeature genbank = sequences
+extractSpecificFeatureSeqData :: String -> Genbank -> [SeqData]
+extractSpecificFeatureSeqData specificFeature genbank = seqdatas
   where coordinates = map featureCoordinates (filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank))
         fullSequence = origin genbank
-        sequences = concat (map (extractSequences fullSequence) coordinates)
-  
-extractSequences :: SeqData -> CoordinateSet -> [SeqData]
-extractSequences genbankSeq seqCoordinates
-  | isNothing (setType seqCoordinates) = [extractSequence genbankSeq (head (setCoordinates seqCoordinates))]
-  | fromJust (setType seqCoordinates) == "join" = extractJoinSequence genbankSeq seqCoordinates
-  | fromJust (setType seqCoordinates) == "order" = extractOrderSequences genbankSeq seqCoordinates
+        seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
-extractJoinSequence :: SeqData -> CoordinateSet -> [SeqData]
-extractJoinSequence genbankSeq seqCoordinates = joinSequence
+-- | Extract header (locus identifier, locus tag) and sequence data
+extractSpecificFeatureSequence :: String -> Genbank -> [Sequence]
+extractSpecificFeatureSequence specificFeature genbank = sequences
+  where genbankLocus = locus genbank
+        currentFeatures = filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank)
+        fields = [ x | x@(Field {}) <- concat (map attributes currentFeatures)]
+        locusTags = map fieldValue (filter (\field -> ((fieldType field) == (L.pack "locus_tag"))) fields)
+        coordinates = map featureCoordinates (filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank))
+        fullSequence = origin genbank
+        seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
+        sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip locusTags seqdata
+                
+---------------------------
+  
+extractSeqDataList :: SeqData -> CoordinateSet -> [SeqData]
+extractSeqDataList genbankSeq seqCoordinates
+  | isNothing (setType seqCoordinates) = [extractSeqData genbankSeq (head (setCoordinates seqCoordinates))]
+  | fromJust (setType seqCoordinates) == "join" = extractJoinSeqData genbankSeq seqCoordinates
+  | fromJust (setType seqCoordinates) == "order" = extractOrderSeqData genbankSeq seqCoordinates
+
+extractJoinSeqData :: SeqData -> CoordinateSet -> [SeqData]
+extractJoinSeqData genbankSeq seqCoordinates = joinSequence
   where coordinateList = (setCoordinates seqCoordinates)
         partialSequences = map (extractByteStringFromSeqData genbankSeq) coordinateList
         joinSequence = [SeqData (L.concat partialSequences)]
       
-extractOrderSequences :: SeqData -> CoordinateSet -> [SeqData]
-extractOrderSequences fullSeq seqCoordinates = orderSequences
+extractOrderSeqData :: SeqData -> CoordinateSet -> [SeqData]
+extractOrderSeqData fullSeq seqCoordinates = orderSequences
   where coordinateList = (setCoordinates seqCoordinates)
-        orderSequences = map (extractSequence fullSeq) coordinateList 
+        orderSequences = map (extractSeqData fullSeq) coordinateList 
 
-extractSequence :: SeqData -> Coordinates -> SeqData
-extractSequence fullSequence seqCoordinates
+extractSeqData :: SeqData -> Coordinates -> SeqData
+extractSeqData fullSequence seqCoordinates
   | complement seqCoordinates = (SeqData (revcompl' subsequence))
   | otherwise = SeqData subsequence
   where subsequence = extractByteStringFromSeqData fullSequence seqCoordinates
-
 
 extractByteStringFromSeqData :: SeqData -> Coordinates -> L.ByteString
 extractByteStringFromSeqData fullSequence seqCoordinates = substring
   where endTruncatedSequence = L.take (fromIntegral ((coordinatesFrom seqCoordinates) + (coordinatesTo seqCoordinates)):: Int64) (unSD fullSequence)
         substring = L.drop (fromIntegral (coordinatesFrom seqCoordinates) :: Int64) endTruncatedSequence
-
-
 
 --The following two functions are copied from Ketil Maldes hackage bio package. -- The same functionality has not been reincluded into the biocore package      
 -- | Calculate the reverse complement for SeqData only.
