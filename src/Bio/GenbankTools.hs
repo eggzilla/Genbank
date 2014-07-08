@@ -1,4 +1,5 @@
--- | Parse Genebank format
+-- | Functions for processing of genbank data 
+--   Extraction of feature sequences (header,sequencedata) or sequence data
 module Bio.GenbankTools (
                        extractAllFeatureSeqData,
                        extractSpecificFeatureSeqData,
@@ -16,21 +17,21 @@ import Data.Int
 import Bio.Sequence.Fasta
 import qualified Data.ByteString.Lazy.Char8 as L
 
--- |
+-- | Extracts the sequence data of all features in genbank data
 extractAllFeatureSeqData :: Genbank -> [SeqData]
 extractAllFeatureSeqData genbank = seqdatas
   where coordinates = map featureCoordinates (features genbank)
         fullSequence = origin genbank
         seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
--- |
+-- | Extracts the sequence data of the specified feature type from genbank data
 extractSpecificFeatureSeqData :: String -> Genbank -> [SeqData]
 extractSpecificFeatureSeqData specificFeature genbank = seqdatas
   where coordinates = map featureCoordinates (filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank))
         fullSequence = origin genbank
         seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
--- | Extract header (locus tag, Genbank ) and sequence data
+-- | Extract sequnce header (locus tag, Genbank ) and sequence data for all features in genbank data
 extractAllFeatureSequence :: Genbank -> [Sequence]
 extractAllFeatureSequence genbank = sequences
   where currentAccession = L.unpack (locus genbank)
@@ -43,7 +44,7 @@ extractAllFeatureSequence genbank = sequences
         seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
         sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
 
--- | Extract header (locus identifier, locus tag) and sequence data
+-- | Extract sequence header (locus identifier, locus tag) and sequence data for a specific feature type in genbank data
 extractSpecificFeatureSequence :: String -> Genbank -> [Sequence]
 extractSpecificFeatureSequence specificFeature genbank = sequences
   where currentAccession = L.unpack (locus genbank)
@@ -57,30 +58,34 @@ extractSpecificFeatureSequence specificFeature genbank = sequences
         sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
                 
 ---------------------------
-  
+-- | Extract the seqdata for a coordinateSet from the ORIGIN section of genbank data  
 extractSeqDataList :: SeqData -> CoordinateSet -> [SeqData]
 extractSeqDataList genbankSeq seqCoordinates
   | isNothing (setType seqCoordinates) = [extractSeqData genbankSeq (head (setCoordinates seqCoordinates))]
   | fromJust (setType seqCoordinates) == "join" = extractJoinSeqData genbankSeq seqCoordinates
   | fromJust (setType seqCoordinates) == "order" = extractOrderSeqData genbankSeq seqCoordinates
 
+-- | Extract sequence data for CoordinateSets of type "join" 
 extractJoinSeqData :: SeqData -> CoordinateSet -> [SeqData]
 extractJoinSeqData genbankSeq seqCoordinates = joinSequence
   where coordinateList = (setCoordinates seqCoordinates)
         partialSequences = map (extractByteStringFromSeqData genbankSeq) coordinateList
         joinSequence = [SeqData (L.concat partialSequences)]
-      
+
+-- | Extract sequence data for CoordinateSets of type "order"      
 extractOrderSeqData :: SeqData -> CoordinateSet -> [SeqData]
 extractOrderSeqData fullSeq seqCoordinates = orderSequences
   where coordinateList = (setCoordinates seqCoordinates)
         orderSequences = map (extractSeqData fullSeq) coordinateList 
 
+-- | Extract sequence data for coordinates
 extractSeqData :: SeqData -> Coordinates -> SeqData
 extractSeqData fullSequence seqCoordinates
   | complement seqCoordinates = (SeqData (revcompl' subsequence))
   | otherwise = SeqData subsequence
   where subsequence = extractByteStringFromSeqData fullSequence seqCoordinates
 
+-- | Extract partial sequence from ORIGIN seqction of genbank data according to provided coordinates
 extractByteStringFromSeqData :: SeqData -> Coordinates -> L.ByteString
 extractByteStringFromSeqData fullSequence seqCoordinates = substring
   where endTruncatedSequence = L.take (fromIntegral ((coordinatesFrom seqCoordinates) + (coordinatesTo seqCoordinates)):: Int64) (unSD fullSequence)
