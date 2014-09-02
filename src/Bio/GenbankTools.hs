@@ -1,4 +1,5 @@
--- | Parse Genebank format
+-- | Tools for Genbank-format
+-- Extraction of sequences and sequence data from genbank format 
 module Bio.GenbankTools (
                        extractAllFeatureSeqData,
                        extractSpecificFeatureSeqData,
@@ -16,21 +17,21 @@ import Data.Int
 import Bio.Sequence.Fasta
 import qualified Data.ByteString.Lazy.Char8 as L
 
--- |
+-- | Extract nucleotide sequence data for all features
 extractAllFeatureSeqData :: Genbank -> [SeqData]
 extractAllFeatureSeqData genbank = seqdatas
   where coordinates = map featureCoordinates (features genbank)
         fullSequence = origin genbank
         seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
--- |
+-- | Extract nucleotide sequence data for all features of specified type
 extractSpecificFeatureSeqData :: String -> Genbank -> [SeqData]
 extractSpecificFeatureSeqData specificFeature genbank = seqdatas
   where coordinates = map featureCoordinates (filter (\x -> ((featureType x) == (L.pack specificFeature)))(features genbank))
         fullSequence = origin genbank
         seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
 
--- | Extract header (locus tag, Genbank ) and sequence data
+-- | Extract header (locus tag, Genbank ) and nucleotide sequence data for all features
 extractAllFeatureSequence :: Genbank -> [Sequence]
 extractAllFeatureSequence genbank = sequences
   where currentAccession = L.unpack (locus genbank)
@@ -43,7 +44,7 @@ extractAllFeatureSequence genbank = sequences
         seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
         sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
 
--- | Extract header (locus identifier, locus tag) and sequence data
+-- | Extract header (locus identifier, locus tag) and nucleotide sequence data for all features of specified type
 extractSpecificFeatureSequence :: String -> Genbank -> [Sequence]
 extractSpecificFeatureSequence specificFeature genbank = sequences
   where currentAccession = L.unpack (locus genbank)
@@ -57,30 +58,35 @@ extractSpecificFeatureSequence specificFeature genbank = sequences
         sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
                 
 ---------------------------
-  
+--Auxiliary functions:
+-- | Extracts a set of sequences from origin sequence according to provided CoordinateSet 
 extractSeqDataList :: SeqData -> CoordinateSet -> [SeqData]
 extractSeqDataList genbankSeq seqCoordinates
   | isNothing (setType seqCoordinates) = [extractSeqData genbankSeq (head (setCoordinates seqCoordinates))]
   | fromJust (setType seqCoordinates) == "join" = extractJoinSeqData genbankSeq seqCoordinates
   | fromJust (setType seqCoordinates) == "order" = extractOrderSeqData genbankSeq seqCoordinates
 
+-- | Extracts sequence substrings according to coordinate set and joins them 
 extractJoinSeqData :: SeqData -> CoordinateSet -> [SeqData]
 extractJoinSeqData genbankSeq seqCoordinates = joinSequence
   where coordinateList = (setCoordinates seqCoordinates)
         partialSequences = map (extractByteStringFromSeqData genbankSeq) coordinateList
         joinSequence = [SeqData (L.concat partialSequences)]
-      
+
+-- | Extracts sequence substrings according to CoordinateSet      
 extractOrderSeqData :: SeqData -> CoordinateSet -> [SeqData]
 extractOrderSeqData fullSeq seqCoordinates = orderSequences
   where coordinateList = (setCoordinates seqCoordinates)
         orderSequences = map (extractSeqData fullSeq) coordinateList 
 
+-- | Extracts sequence according to a Coordinates pair
 extractSeqData :: SeqData -> Coordinates -> SeqData
 extractSeqData fullSequence seqCoordinates
-  | complement seqCoordinates = (SeqData (revcompl' subsequence))
+  | complement seqCoordinates = (SeqData (revcomplement' subsequence))
   | otherwise = SeqData subsequence
   where subsequence = extractByteStringFromSeqData fullSequence seqCoordinates
 
+-- | Extracts ByteString from seqdata according to coordinate pair 
 extractByteStringFromSeqData :: SeqData -> Coordinates -> L.ByteString
 extractByteStringFromSeqData fullSequence seqCoordinates = substring
   where endTruncatedSequence = L.take (fromIntegral ((coordinatesFrom seqCoordinates) + (coordinatesTo seqCoordinates)):: Int64) (unSD fullSequence)
@@ -88,19 +94,19 @@ extractByteStringFromSeqData fullSequence seqCoordinates = substring
 
 --The following two functions are copied from Ketil Maldes hackage bio package. -- The same functionality has not been reincluded into the biocore package      
 -- | Calculate the reverse complement for SeqData only.
---revcompl' :: SeqData -> SeqData
-revcompl' = L.map compl . L.reverse
+revcomplement' :: L.ByteString -> L.ByteString
+revcomplement' = L.map complement' . L.reverse
 
 -- | Complement a single character.  I.e. identify the nucleotide it 
 --   can hybridize with.  Note that for multiple nucleotides, you usually
 --   want the reverse complement (see 'revcompl' for that).
-compl :: Char -> Char
-compl 'A' = 'T'
-compl 'T' = 'A'
-compl 'C' = 'G'
-compl 'G' = 'C'
-compl 'a' = 't'
-compl 't' = 'a'
-compl 'c' = 'g'
-compl 'g' = 'c'
-compl  x  =  x
+complement' :: Char -> Char
+complement' 'A' = 'T'
+complement' 'T' = 'A'
+complement' 'C' = 'G'
+complement' 'G' = 'C'
+complement' 'a' = 't'
+complement' 't' = 'a'
+complement' 'c' = 'g'
+complement' 'g' = 'c'
+complement'  x  =  x
