@@ -9,6 +9,7 @@ import Text.ParserCombinators.Parsec
 import System.IO
 import System.Environment
 import Data.List
+import Bio.GenbankTools
 import Bio.GenbankParser
 import System.Directory
 import Control.Monad    
@@ -21,6 +22,10 @@ main = do
   let output_file = (last args)
                                       
   -- read Clustal outputfile
-  --input_file_content <- readFile input_file                       
-  parsedinput <- readGenbankGeneric input_file 
+  --input_file_content <- readFile input_file
+  parsedinput <- readGenbank input_file
+  let seqs = extractSpecificFeatureSequence "gene" (fromRight parsedinput)
   print parsedinput
+  putStrLn "Sequences:"
+  print seqs
+  
