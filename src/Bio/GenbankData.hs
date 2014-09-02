@@ -8,6 +8,7 @@ import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------
 --Generic parser types
 
+-- | Genbank type representing the content of a genbank record
 data Genbank = Genbank
   {
     locus :: L.ByteString,
@@ -33,6 +34,7 @@ data Genbank = Genbank
   }
   deriving (Show, Eq)
 
+-- | Genbank Feature - e.g gene, repeat region
 data Feature = Feature {
      featureType :: L.ByteString,
      featureCoordinates :: CoordinateSet,
@@ -41,6 +43,7 @@ data Feature = Feature {
   }
   deriving (Show, Eq)
 
+-- | Genbank attribute of feature or subfeature, either a flag field or a GO attribute
 data Attribute = Flag {
       flagType :: L.ByteString
   }
@@ -57,6 +60,7 @@ data Attribute = Flag {
   }
   deriving (Show, Eq)
 
+-- | Genbank subfeature, e.g. CDS, MiscFeature, NcRNA, Mobile Element, STS rRNA, tRNA, tmRNA, reporigin
 data SubFeature = SubFeature 
   {  
      subFeatureType :: L.ByteString,
@@ -95,6 +99,7 @@ data GenbankExplicit = GenbankExplicit
   }
   deriving (Show, Eq)
 
+-- | Genbank reference associating record with publication
 data Reference = Reference
   {
      index :: Int,
@@ -124,6 +129,7 @@ data FeaturesExplicit = FeaturesExplicit
   }
   deriving (Show, Eq)
 
+-- | Coordinate pair for a nucleotide sequence
 data Coordinates = Coordinates
   {
     coordinatesFrom :: Int,
@@ -161,6 +167,7 @@ data DbXRef = DbXRef
   }
   deriving (Show, Eq)
 
+-- | Set of coordinates, with type order, join
 data CoordinateSet = CoordinateSet
   {
     setCoordinates :: [Coordinates], 
@@ -266,6 +273,7 @@ data SubFeatureExplicit = CDS
   }
   deriving (Show, Eq)
 
+-- | Slices of the nucleotide sequence contained in the Genbank record
 data OriginSlice = OriginSlice
   {
      originIndex :: Int,
@@ -273,6 +281,7 @@ data OriginSlice = OriginSlice
   }
   deriving (Show, Eq)
 
+-- | Gene Onthology term
 data GOterm = GOterm
   {
      goType :: String,

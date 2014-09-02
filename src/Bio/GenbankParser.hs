@@ -1,5 +1,4 @@
--- | Parse Genebank format
-
+-- | Functions for parsing genebank format
 module Bio.GenbankParser (
                        parseGenbank,
                        readGenbank,
@@ -68,6 +67,7 @@ genParserGenbank = do
   newline
   return $ Genbank (L.pack locus) (readInt length) (L.pack moleculeType) (L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (L.pack comment) features contig (origintoSeqData origin) 
 
+-- | Parse a feature
 genParserFeature :: GenParser Char st Feature
 genParserFeature = do
   string "     "
@@ -79,9 +79,11 @@ genParserFeature = do
   (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
   return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes subFeatures
 
+-- | Parse a attribute, a GO attribute or a Flag
 genParserAttributes :: GenParser Char st Attribute
 genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
 
+-- | Parse a attribute, consisting of attribute designation and value
 genParserAttribute :: GenParser Char st Attribute
 genParserAttribute = do
   many1 space
@@ -94,6 +96,7 @@ genParserAttribute = do
   newline
   return $ Field (L.pack fieldName) (L.pack stringField)
 
+-- | Parse a Subfeature
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
   string "     "
@@ -105,6 +108,7 @@ genParserSubFeature = do
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
   return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes (translationtoSeqData subFeatureTranslation)
 
+-- | Parse GO attribute 
 genParseGOattribute :: GenParser Char st Attribute
 genParseGOattribute = do
   many1 space
@@ -118,6 +122,7 @@ genParseGOattribute = do
   newline
   return $ GOattribute (L.pack goType) (L.pack goId) (L.pack goName)
 
+-- | Parse flag attribute
 genParserFlagAttribute :: GenParser Char st Attribute
 genParserFlagAttribute = do
   many1 space
@@ -127,10 +132,11 @@ genParserFlagAttribute = do
   newline
   return $ Flag (L.pack flagType)
 
--- | 
+-- | Parse the input as Genbank datatype
+parseGenbank :: String -> Either ParseError Genbank
 parseGenbank input = parse genParserGenbank "genParserGenbank" input
 
--- |                      
+-- | Read the file as Genbank datatype                     
 readGenbank :: String -> IO (Either ParseError Genbank)          
 readGenbank filePath = parseFromFile genParserGenbank filePath
 
@@ -138,7 +144,7 @@ readGenbank filePath = parseFromFile genParserGenbank filePath
 --------------------------------------------------
 --Explicit parsing functions:
 
--- | Parse the input as Genbank datatype
+-- | Parse the input as GenbankExplicit datatype
 genParserGenbankExplicit :: GenParser Char st GenbankExplicit
 genParserGenbankExplicit = do
   string "LOCUS"
@@ -180,6 +186,7 @@ genParserGenbankExplicit = do
   newline
   return $ GenbankExplicit elocus (readInt elength) emoleculeType ecircular edivision ecreationDate edefinition eaccession eversion egeneIdentifier edblink ekeywords esource eorganism ereferences ecomment efeatures econtig (origintoSeqData eorigin) 
 
+-- | Parse a Field 
 genParserField :: String -> String -> GenParser Char st String
 genParserField fieldStart fieldEnd = do 
   string fieldStart
