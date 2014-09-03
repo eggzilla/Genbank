@@ -69,17 +69,17 @@ genParserGenbank = do
 genParserFeature :: GenParser Char st Feature
 genParserFeature = do
   string "     "
-  featureType <- choice [(try (string "gene")) , (try (string "repeat_region")), (try (string "source"))]
+  featureType <- choice [try (string "gene") , try (string "repeat_region"), try (string "source")]
   many1 space
-  genericFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
+  genericFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
   attibutes <- many (try genParserAttributes)
   subFeatures <- many (try genParserSubFeature) 
-  (choice [(try geneAhead), (try repeatAhead), (try (lookAhead (string "CONTIG"))), (try (lookAhead (string "ORIGIN")))])
+  choice [try geneAhead, try repeatAhead, try (lookAhead (string "CONTIG")), try (lookAhead (string "ORIGIN"))]
   return $ Feature (L.pack featureType) genericFeatureCoordinates attibutes subFeatures
 
 -- | Parse a attribute, a GO attribute or a Flag
 genParserAttributes :: GenParser Char st Attribute
-genParserAttributes = choice [(try genParserAttribute), (try genParseGOattribute), (try genParserFlagAttribute)]
+genParserAttributes = choice [try genParserAttribute, try genParseGOattribute, try genParserFlagAttribute]
 
 -- | Parse a attribute, consisting of attribute designation and value
 genParserAttribute :: GenParser Char st Attribute
@@ -98,10 +98,10 @@ genParserAttribute = do
 genParserSubFeature :: GenParser Char st SubFeature
 genParserSubFeature = do
   string "     "
-  notFollowedBy (choice [(string "gene"),(string "repeat_region"),(string "source")])
+  notFollowedBy (choice [string "gene", string "repeat_region", string "source"])
   subFeatureType <- many1 (noneOf " ")
   many1 space
-  subFeatureCoordinates <- choice [(genParserCoordinatesSet "join"), (genParserCoordinatesSet "order")]
+  subFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
   attibutes <- many (try genParserAttributes)
   subFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
   return $ SubFeature (L.pack subFeatureType) subFeatureCoordinates attibutes (translationtoSeqData subFeatureTranslation)
@@ -132,11 +132,11 @@ genParserFlagAttribute = do
 
 -- | Parse the input as Genbank datatype
 parseGenbank :: String -> Either ParseError Genbank
-parseGenbank input = parse genParserGenbank "genParserGenbank" input
+parseGenbank = parse genParserGenbank "genParserGenbank" 
 
 -- | Read the file as Genbank datatype                     
 readGenbank :: String -> IO (Either ParseError Genbank)          
-readGenbank filePath = parseFromFile genParserGenbank filePath
+readGenbank  = parseFromFile genParserGenbank 
 
 -- | Parse a Field 
 genParserField :: String -> String -> GenParser Char st String
@@ -153,7 +153,7 @@ genParserOriginSequence = do
   space
   originSequence <- many1 (noneOf "\n")
   newline
-  return $ originSequence
+  return originSequence
  
 -- | Parse the input as OriginSlice datatype
 genParserOriginSlice :: GenParser Char st OriginSlice
@@ -182,39 +182,37 @@ genParserReference = do
   optional (try (string ")"))
   newline
   many1 space
-  authors <- choice [(genParserField "AUTHORS" "TITLE"), (genParserField "CONSRTM" "TITLE")]
+  authors <- choice [genParserField "AUTHORS" "TITLE", genParserField "CONSRTM" "TITLE"]
   title <- genParserField "TITLE" "JOURNAL"
-  journal <- choice [(try (genParserField "JOURNAL" "REFERENCE")), (genParserField "JOURNAL" "COMMENT")]
+  journal <- choice [try (genParserField "JOURNAL" "REFERENCE"), genParserField "JOURNAL" "COMMENT"]
   return $ Reference (readInt index) (liftM readInt baseFrom) (liftM readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
 parseFlag :: String -> GenParser Char st Char
 parseFlag flagString = do
   many1 space
-  flag <- string ("/" ++ flagString)
+  flag <- string ('/' : flagString)
   newline
 
-geneAhead = do
-  lookAhead (string "     gene")
+geneAhead = lookAhead (string "     gene")
 
-repeatAhead= do
-  lookAhead (string "     repeat")
+repeatAhead = lookAhead (string "     repeat")
 
 origintoSeqData :: [String] -> SeqData
-origintoSeqData originInput = SeqData $ (L.pack (filter (\nuc -> (nuc /= ('\n') && (nuc /= (' ')))) (concat originInput)))
+origintoSeqData originInput = SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
 
 translationtoSeqData :: Maybe String -> Maybe SeqData
 translationtoSeqData translationInput 
-  | (isJust translationInput) = Just (SeqData $ (L.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
+  | isJust translationInput = Just (SeqData (L.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
   | otherwise = Nothing 
 
 genParserCoordinates :: GenParser Char st Coordinates
 genParserCoordinates = do
-  coordinates <- choice [(try genParserForwardCoordinates),(try genParserComplementCoordinates)]
-  return $ coordinates
+  coordinates <- choice [try genParserForwardCoordinates, try genParserComplementCoordinates]
+  return coordinates
 
 genParserCoordinatesSet :: String -> GenParser Char st CoordinateSet
 genParserCoordinatesSet prefix = do
-  coordinates <- choice [(try (many1 genParserForwardCoordinates)),(try (many1 genParserComplementCoordinates)),(try (genParserForwardPrefix prefix)),(try (genParserComplementPrefix prefix))]
+  coordinates <- choice [try (many1 genParserForwardCoordinates), try (many1 genParserComplementCoordinates), try (genParserForwardPrefix prefix), try (genParserComplementPrefix prefix)]
   return $ CoordinateSet coordinates (Just prefix)
 
 -- | Parsing of coordinate lists with prefix e.g. order, join
@@ -223,7 +221,7 @@ genParserForwardPrefix prefix = do
   string (prefix ++ "(")
   coordinates <- many1 genParserForwardPrefixCoordinates
   string ")"
-  return $ coordinates
+  return coordinates
 
 genParserForwardPrefixCoordinates :: GenParser Char st Coordinates
 genParserForwardPrefixCoordinates = do
@@ -234,7 +232,7 @@ genParserForwardPrefixCoordinates = do
   string "."
   coordinateToEqualitySymbol <- optionMaybe (try (oneOf "><"))
   coordinateTo <- many1 digit
-  optional (choice [(try (string ",\n")),(try (string ","))])
+  optional (choice [try (string ",\n"),try (string ",")])
   optional (many1 (string " "))
   return $ Coordinates (readInt coordinateFrom) coordinateFromEqualitySymbol (readInt coordinateTo) coordinateToEqualitySymbol True
 
@@ -247,7 +245,7 @@ genParserComplementPrefix prefix = do
   string ")"
   string ")"
   newline
-  return $ (setComplement False coordinates)
+  return (setComplement False coordinates)
 
 genParserForwardCoordinates :: GenParser Char st Coordinates
 genParserForwardCoordinates = do
@@ -321,7 +319,7 @@ parseStringBracketField fieldname = do
   many1 space
   string ("/" ++ fieldname ++ "=(")
   stringBracketField <- manyTill anyChar (try (string ")\n"))
-  return $ stringBracketField
+  return stringBracketField
   
 -- | Parse a field containing a String         
 parseStringField :: String -> GenParser Char st String
@@ -331,7 +329,7 @@ parseStringField fieldname = do
   stringField <- many1( noneOf "\"")
   string "\""
   newline
-  return $ stringField
+  return stringField
 
 -- | Parse a field containing a Int          
 parseIntField :: String -> GenParser Char st Int
@@ -340,10 +338,10 @@ parseIntField fieldname = do
   string ("/" ++ fieldname ++ "=")
   int <- many1 (noneOf "\n")
   newline
-  return $ (readInt int)
+  return (readInt int)
 
 isComplement :: Maybe String -> Bool
 isComplement string
-  | (isJust string) = True
+  | isJust string = True
   | otherwise = False
 
