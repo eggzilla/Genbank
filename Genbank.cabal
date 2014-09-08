@@ -42,7 +42,7 @@ source-repository head
 
 source-repository this
   type:     git
-  location: https://github.com/eggzilla/Genbank/tree/v1.0.1
+  location: https://github.com/eggzilla/Genbank/tree/1.0.1
   tag:      v1.0.1
 
 library
