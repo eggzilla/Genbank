@@ -6,8 +6,24 @@ name:                Genbank
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
 version:             1.0.0
-synopsis:            Libary for parsing NCBI genbank format
-description:         Currently contains parsers and datatypes for: genbank
+synopsis:            Libary for processing the NCBI genbank format
+description:         Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
+                     .
+                     For more information on genbank refer to: <http://www.ncbi.nlm.nih.gov/genbank/>
+                     .
+                     For a sample genbank record see: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
+                     .
+                     ###GenbankData - Datastructures for Genbank format 
+                     .
+                     Contains Haskell datastructures for Genbank format and for contained features, subfeatures
+                     .
+                     ###GenbankParser - Parse Genbank format
+                     .
+                     Contains Haskell functions to parse Genbank format from files or internal Strings.
+                     .
+                     ###GenbankTools - Tools for processing Genbank 
+                     .
+                     Contains Haskell functions to extract nucleotide sequences for features 
                      
 license:             GPL
 license-file:        LICENSE
