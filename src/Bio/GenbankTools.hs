@@ -1,9 +1,7 @@
 -- | Functions for processing of genbank data 
 -- Extraction of feature sequences (header,sequencedata) or sequence data
 module Bio.GenbankTools (
-                       --extractAllFeatureSeqData,
                        extractSpecificFeatureSeqData,
-                      -- extractAllFeatureSequence,
                        extractSpecificFeatureSequence,
                        module Bio.GenbankData
                       ) where
@@ -17,14 +15,6 @@ import Data.Int
 import Bio.Sequence.Fasta
 import qualified Data.ByteString.Lazy.Char8 as L
 
--- | Extracts the sequence data of all features in genbank data
---extractAllFeatureSeqData :: Genbank -> [SeqData]
---extractAllFeatureSeqData genbank = seqdatas
---  where coordinates = map featureCoordinates (features genbank)
---        fullSequence = origin genbank
---        seqdatas = concat (map (extractSeqDataList fullSequence) coordinates)
-
-
 -- | Extract nucleotide sequence data for all features of specified type, Nothing as specific feature extracts all feature sequence seqdatas
 extractSpecificFeatureSeqData :: Maybe String -> Genbank -> [SeqData]
 extractSpecificFeatureSeqData specificFeature genbank = seqdatas
@@ -32,19 +22,6 @@ extractSpecificFeatureSeqData specificFeature genbank = seqdatas
         coordinates = map featureCoordinates currentFeatures
         fullSequence = origin genbank
         seqdatas = concatMap (extractSeqDataList fullSequence) coordinates
-
--- | Extract header (locus tag, Genbank) and nucleotide sequence data for all features
---extractAllFeatureSequence :: Genbank -> [Sequence]
---extractAllFeatureSequence genbank = sequences
---  where currentAccession = L.unpack (locus genbank)
---        currentFeatures = features genbank
---       fields = [ x | x@(Field {}) <- concat (map attributes currentFeatures)]
---        locusTags = map fieldValue (filter (\field -> ((fieldType field) == (L.pack "locus_tag"))) fields)
---        currentHeaders = map (\locus_tag -> L.pack ((L.unpack locus_tag) ++ " " ++ currentAccession)) locusTags
---        coordinates = map featureCoordinates (features genbank)
---        fullSequence = origin genbank
---        seqdata = concat (map (extractSeqDataList fullSequence) coordinates)
---        sequences = map (\(header,seqdata) -> Seq (SeqLabel header) seqdata Nothing) $ zip currentHeaders seqdata
 
 -- | Extract header (locus identifier, locus tag) and nucleotide sequence data for all features of specified type, Nothing as specific feature extracts all feature sequences
 extractSpecificFeatureSequence :: Maybe String -> Genbank -> [Sequence]

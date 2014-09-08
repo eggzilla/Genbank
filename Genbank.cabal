@@ -24,6 +24,8 @@ description:         Haskell cabal Genbank libary contains tools, parser and dat
                      ###GenbankTools - Tools for processing Genbank 
                      .
                      Contains Haskell functions to extract nucleotide sequences for features 
+extra-source-files:
+  README.md
                      
 license:             GPL
 license-file:        LICENSE
