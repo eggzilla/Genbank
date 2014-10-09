@@ -1,4 +1,6 @@
-#Genbank
+#Genbank   [![Build Status](https://travis-ci.org/eggzilla/Genbank.svg?branch=master)](https://travis-ci.org/eggzilla/Genbank)
+=========
+
 Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
 For more information on genbank refer to: 
 
