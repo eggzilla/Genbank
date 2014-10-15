@@ -5,7 +5,6 @@ module Main where
     
 import System.Environment (getArgs)
 import System.IO
-import System.Environment
 import Data.List
 import Bio.GenbankTools
 import Bio.GenbankParser  
