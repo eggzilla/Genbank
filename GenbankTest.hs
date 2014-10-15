@@ -4,17 +4,12 @@
 module Main where
     
 import System.Environment (getArgs)
-import System.Process 
-import Text.ParserCombinators.Parsec
 import System.IO
 import System.Environment
 import Data.List
 import Bio.GenbankTools
-import Bio.GenbankParser
-import System.Directory
-import Control.Monad    
+import Bio.GenbankParser  
 import Data.Either
-import Data.Either.Unwrap
     
 main = do
   args <- getArgs
@@ -22,10 +17,5 @@ main = do
   let output_file = (last args)
                                       
   -- read Clustal outputfile
-  --input_file_content <- readFile input_file
   parsedinput <- readGenbank input_file
-  let seqs = extractSpecificFeatureSequence "gene" (fromRight parsedinput)
   print parsedinput
-  putStrLn "Sequences:"
-  print seqs
-  

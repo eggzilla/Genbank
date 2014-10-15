@@ -55,3 +55,6 @@ library
   -- Directories containing source files.
   hs-source-dirs:      src
   
+executable GenbankTest
+  main-is:          GenbankTest.hs
+  build-depends:    base >= 4 && <= 5, cmdargs, Genbank
