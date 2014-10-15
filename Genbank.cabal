@@ -5,7 +5,7 @@ name:                Genbank
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             1.0.1
+version:             1.0.2
 synopsis:            Libary for processing the NCBI genbank format
 description:         Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
                      .
