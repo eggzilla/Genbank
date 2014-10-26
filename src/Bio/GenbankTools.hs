@@ -7,8 +7,6 @@ module Bio.GenbankTools (
                       ) where
 
 import Bio.GenbankData
-import Control.Monad
-import Data.List
 import Data.Maybe
 import Bio.Core.Sequence
 import Data.Int
@@ -51,6 +49,7 @@ extractSeqDataList genbankSeq seqCoordinates
   | isNothing (setType seqCoordinates) = [extractSeqData genbankSeq (head (setCoordinates seqCoordinates))]
   | fromJust (setType seqCoordinates) == "join" = extractJoinSeqData genbankSeq seqCoordinates
   | fromJust (setType seqCoordinates) == "order" = extractOrderSeqData genbankSeq seqCoordinates
+  | otherwise = []                                                   
 
 -- | Extract sequence data for CoordinateSets of type "join" 
 extractJoinSeqData :: SeqData -> CoordinateSet -> [SeqData]
