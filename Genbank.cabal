@@ -51,10 +51,12 @@ library
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore, biofasta
-  
+  ghc-options: -Wall -O2
+
   -- Directories containing source files.
   hs-source-dirs:      src
   
 executable GenbankTest
   main-is:          GenbankTest.hs
   build-depends:    base >= 4 && <= 5, cmdargs, Genbank
+  ghc-options: -Wall -O2
