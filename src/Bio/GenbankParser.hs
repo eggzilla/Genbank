@@ -31,9 +31,9 @@ genParserGenbank = do
   many1 space
   moleculeType <- many1 (noneOf " ")
   many1 space
-  circular <- many1 (noneOf " ")
-  many1 space
-  division <- many1 (noneOf " ")
+  circular <- optionMaybe (try (choice [string "linear",string "circular",string "LINEAR",string "CIRCULAR"]))
+  many space
+  division <-  many1 (noneOf " ")
   many1 space
   creationDate <- many1 (noneOf "\n")
   newline
@@ -45,12 +45,12 @@ genParserGenbank = do
   many1 space
   geneIdentifier <- many1 (noneOf "\n")
   newline
-  dblink <- genParserField "DBLINK" "KEYWORDS"
+  dblink <- optionMaybe (try (genParserField "DBLINK" "KEYWORDS"))
   keywords <- genParserField "KEYWORDS" "SOURCE"
   source <- genParserField "SOURCE" "ORGANISM"
   organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
-  comment <- genParserField "COMMENT" "FEATURES"
+  comment <- optionMaybe (try (genParserField "COMMENT" "FEATURES"))
   string "FEATURES"
   many1 space
   string "Location/Qualifiers"
@@ -63,7 +63,7 @@ genParserGenbank = do
   origin <- many1 genParserOriginSequence
   string "//"
   newline
-  return $ Genbank (L.pack locus) (readInt length) (L.pack moleculeType) (L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (L.pack comment) features contig (origintoSeqData origin) 
+  return $ Genbank (L.pack locus) (readInt length) (L.pack moleculeType) (liftM L.pack circular) (L.pack division) (L.pack creationDate) (L.pack definition) (L.pack accession) (L.pack version) (L.pack geneIdentifier) (liftM L.pack dblink) (L.pack keywords) (L.pack source)  (L.pack organism) references (liftM L.pack comment) features contig (origintoSeqData origin) 
 
 -- | Parse a feature
 genParserFeature :: GenParser Char st Feature
@@ -184,7 +184,7 @@ genParserReference = do
   many1 space
   authors <- choice [genParserField "AUTHORS" "TITLE", genParserField "CONSRTM" "TITLE"]
   title <- genParserField "TITLE" "JOURNAL"
-  journal <- choice [try (genParserField "JOURNAL" "REFERENCE"), genParserField "JOURNAL" "COMMENT"]
+  journal <- choice [try (genParserField "JOURNAL" "REFERENCE"), try (genParserField "JOURNAL" "COMMENT"), try (genParserField "JOURNAL" "FEATURES")]
   return $ Reference (readInt index) (liftM readInt baseFrom) (liftM readInt baseTo) authors title journal Nothing Nothing --pubmedId remark 
 
 parseFlag :: String -> GenParser Char st Char
