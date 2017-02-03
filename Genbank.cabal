@@ -27,7 +27,7 @@ description:         Haskell cabal Genbank libary contains tools, parser and dat
 extra-source-files:
   README.md
                      
-license:             GPL
+license:             GPL-3.0
 license-file:        LICENSE
 author:              Florian Eggenhofer
 maintainer:          egg@tbi.univie.ac.at
