@@ -2,7 +2,7 @@
 --   For more information on genbank consult: <http://www.ncbi.nlm.nih.gov/genbank/>
 --   Genbank record sample: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
 
-module Bio.GenbankData where
+module Biobase.Genbank.Data where
 import Bio.Core.Sequence
 import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------

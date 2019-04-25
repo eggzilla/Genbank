@@ -4,8 +4,8 @@
 module Main where
     
 import System.Environment (getArgs)
-import Bio.GenbankTools
-import Bio.GenbankParser  
+import Biobase.Genbank.Tools
+import Biobase.Genbank.Parser  
 
 main :: IO ()
 main = do

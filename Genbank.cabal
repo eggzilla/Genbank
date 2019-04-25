@@ -5,7 +5,7 @@ name:                Genbank
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             1.0.3
+version:             2.0.0
 synopsis:            Libary for processing the NCBI genbank format
 description:         Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
                      .
@@ -13,15 +13,15 @@ description:         Haskell cabal Genbank libary contains tools, parser and dat
                      .
                      For a sample genbank record see: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
                      .
-                     "Bio.GenbankData" - Datastructures for Genbank format 
+                     "Biobase.Genbank.Data" - Datastructures for Genbank format 
                      .
                      Contains Haskell datastructures for Genbank format and for contained features, subfeatures
                      .
-                     "Bio.GenbankParser" - Parse Genbank format
+                     "Biobase.Genbank.Parser" - Parse Genbank format
                      .
                      Contains Haskell functions to parse Genbank format from files or internal Strings.
                      .
-                     "Bio.GenbankTools" - Tools for processing Genbank 
+                     "Biobase.Genbank.Tools" - Tools for processing Genbank 
                      .
                      Contains Haskell functions to extract nucleotide sequences for features 
 extra-source-files:
@@ -30,7 +30,7 @@ extra-source-files:
 license:             GPL-3.0
 license-file:        LICENSE
 author:              Florian Eggenhofer
-maintainer:          egg@tbi.univie.ac.at
+maintainer:          egg@informatik.uni-freiburg.de
 -- copyright:           
 category:            Bioinformatics
 build-type:          Simple
@@ -42,21 +42,22 @@ source-repository head
 
 source-repository this
   type:     git
-  location: https://github.com/eggzilla/Genbank/tree/1.0.3
-  tag:      1.0.3
+  location: https://github.com/eggzilla/Genbank/tree/2.0.0
+  tag:      2.0.0
 
 library
   -- Modules exported by the library.
-  exposed-modules:   Bio.GenbankParser, Bio.GenbankData, Bio.GenbankTools
+  exposed-modules:   Biobase.Genbank.Parser, Biobase.Genbank.Data, Biobase.Genbank.Tools
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore, biofasta
+  build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore, biofasta, BiobaseEnsembl
   ghc-options: -Wall -O2
 
   -- Directories containing source files.
-  hs-source-dirs:      src
+  hs-source-dirs:      .
   
-executable GenbankTest
-  main-is:          GenbankTest.hs
+executable GenbankConverter
+  main-is:          Converter.hs
   build-depends:    base >= 4 && <= 5, cmdargs, Genbank
   ghc-options: -Wall -O2
+  hs-source-dirs:      Biobase/Genbank

@@ -1,12 +1,12 @@
 -- | Functions for processing of genbank data 
 -- Extraction of feature sequences (header,sequencedata) or sequence data
-module Bio.GenbankTools (
+module Biobase.Genbank.Tools (
                        extractSpecificFeatureSeqData,
                        extractSpecificFeatureSequence,
-                       module Bio.GenbankData
+                       module Biobase.Genbank.Data
                       ) where
 
-import Bio.GenbankData
+import Biobase.Genbank.Data
 import Data.Maybe
 import Bio.Core.Sequence
 import Data.Int
