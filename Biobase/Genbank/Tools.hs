@@ -3,10 +3,10 @@
 module Biobase.Genbank.Tools (
                        extractSpecificFeatureSeqData,
                        extractSpecificFeatureSequence,
-                       module Biobase.Genbank.Data
+                       module Biobase.Genbank.Types
                       ) where
 
-import Biobase.Genbank.Data
+import Biobase.Genbank.Types
 import Data.Maybe
 import Bio.Core.Sequence
 import Data.Int

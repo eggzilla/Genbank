@@ -3,7 +3,7 @@ module Biobase.Genbank.Export (
                        genbankToGFF3
                       ) where
 
-import Biobase.Genbank.Data
+import Biobase.Genbank.Types
 import Biobase.GFF3.Types
 import Data.Maybe
 import Bio.Core.Sequence

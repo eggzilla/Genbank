@@ -1,11 +1,11 @@
 -- | Functions for parsing genebank format
-module Biobase.Genbank.Parser (
+module Biobase.Genbank.Import (
                        parseGenbank,
                        readGenbank,
-                       module Biobase.Genbank.Data
+                       module Biobase.Genbank.Types
                       ) where
 
-import Biobase.Genbank.Data
+import Biobase.Genbank.Types
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language (emptyDef)    

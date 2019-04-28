@@ -13,11 +13,11 @@ description:         Haskell cabal Genbank libary contains tools, parser and dat
                      .
                      For a sample genbank record see: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
                      .
-                     "Biobase.Genbank.Data" - Datastructures for Genbank format 
+                     "Biobase.Genbank.Types" - Datastructures for Genbank format 
                      .
                      Contains Haskell datastructures for Genbank format and for contained features, subfeatures
                      .
-                     "Biobase.Genbank.Parser" - Parse Genbank format
+                     "Biobase.Genbank.Import" - Parse Genbank format
                      .
                      Contains Haskell functions to parse Genbank format from files or internal Strings.
                      .
@@ -47,7 +47,7 @@ source-repository this
 
 library
   -- Modules exported by the library.
-  exposed-modules:   Biobase.Genbank.Parser, Biobase.Genbank.Data, Biobase.Genbank.Tools, Biobase.Genbank.Export
+  exposed-modules:   Biobase.Genbank.Import, Biobase.Genbank.Types, Biobase.Genbank.Tools, Biobase.Genbank.Export
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.5 && <5, parsec, split, bytestring, biocore, biofasta, BiobaseEnsembl, vector

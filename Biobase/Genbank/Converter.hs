@@ -5,7 +5,7 @@ module Main where
     
 import System.Environment (getArgs)
 import Biobase.Genbank.Tools
-import Biobase.Genbank.Parser  
+import Biobase.Genbank.Import
 
 main :: IO ()
 main = do
