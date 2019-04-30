@@ -93,7 +93,13 @@ genParserAttribute = do
   stringField <- many1 (noneOf "\"")
   string "\""
   newline
-  return $ Field (L.pack fieldName) (L.pack stringField)
+  return $ Field (L.pack fieldName) (L.pack (unwords. words $ (map replaceSeparationChar (filter (\ic -> ic /='\n') stringField))))
+
+--remove linebreaks and separation chars from attributes
+replaceSeparationChar :: Char -> Char
+replaceSeparationChar inchar
+  | inchar == ';' = ','
+  | otherwise = inchar
 
 -- | Parse a Subfeature
 genParserSubFeature :: GenParser Char st SubFeature

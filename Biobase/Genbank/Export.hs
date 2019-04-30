@@ -27,8 +27,13 @@ featureToGFF3Entry gbkAccession feature = featureGFF3:subFeatureGFF3
         score = L.pack "."
         strand = if (complement . head . setCoordinates . featureCoordinates $ feature) then '+' else '-'
         phase = L.pack "."
-        fAttributes = V.fromList []
+        fAttributes = V.fromList(map attributeToGFF3Attribute (attributes feature))
         subFeatureGFF3 = map (subFeatureToGFF3Entry gbkAccession) (subFeatures feature)
+
+attributeToGFF3Attribute :: Attribute -> L.ByteString
+attributeToGFF3Attribute (Flag _flagType) = _flagType
+attributeToGFF3Attribute (Field _fieldType _fieldValue) = L.concat [_fieldType,L.pack "=",_fieldValue]
+attributeToGFF3Attribute (GOattribute _gotype _go_id _goname) = L.concat [L.pack "GO-Term=",_gotype,L.pack ",",_go_id,L.pack ",",_goname]
 
 subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> GFF3Entry
 subFeatureToGFF3Entry gbkAccession subFeature = subFeatureGFF3
@@ -40,4 +45,4 @@ subFeatureToGFF3Entry gbkAccession subFeature = subFeatureGFF3
         score = L.pack "." 
 	strand = if (complement . head . setCoordinates . subFeatureCoordinates $ subFeature) then '+' else '-'
         phase = L.pack "."
-        sfAttributes = V.fromList []
+        sfAttributes = V.fromList(map attributeToGFF3Attribute (subFeatureAttributes subFeature))
