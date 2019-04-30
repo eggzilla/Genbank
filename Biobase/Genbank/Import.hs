@@ -36,19 +36,20 @@ genParserGenbank = do
   division <-  many1 (noneOf " ")
   many1 space
   creationDate <- many1 (noneOf "\n")
-  newline
-  definition <- genParserField "DEFINITION" "ACCESSION"
-  accession <- genParserField "ACCESSION" "VERSION"
-  string "VERSION"
+  --newline
+  definition <- genParserField "\nDEFINITION" "\nACCESSION"
+  accession <- genParserField "\nACCESSION" "\nVERSION"
+  string "\nVERSION"
   many1 space
   version <- many1 (noneOf " ")
   many1 space
   geneIdentifier <- many1 (noneOf "\n")
+  --newline
+  dblink <- optionMaybe (try (genParserField "\nDBLINK" "\nKEYWORDS"))
+  keywords <- genParserField "\nKEYWORDS" "\nSOURCE"
+  source <- genParserField "\nSOURCE" "\n  ORGANISM"
+  organism <- genParserField "\n  ORGANISM" "\nREFERENCE"
   newline
-  dblink <- optionMaybe (try (genParserField "DBLINK" "KEYWORDS"))
-  keywords <- genParserField "KEYWORDS" "SOURCE"
-  source <- genParserField "SOURCE" "ORGANISM"
-  organism <- genParserField "ORGANISM" "REFERENCE"
   references <- many1 genParserReference
   comment <- optionMaybe (try (genParserField "COMMENT" "FEATURES"))
   string "FEATURES"
