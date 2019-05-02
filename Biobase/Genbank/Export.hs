@@ -32,8 +32,8 @@ featureToGFF3Entry gbkAccession feature = featureGFF3:subFeatureGFF3
 
 attributeToGFF3Attribute :: Attribute -> L.ByteString
 attributeToGFF3Attribute (Flag _flagType) = _flagType
-attributeToGFF3Attribute (Field _fieldType _fieldValue) = L.concat [_fieldType,L.pack "=",_fieldValue]
-attributeToGFF3Attribute (GOattribute _gotype _go_id _goname) = L.concat [L.pack "GO-Term=",_gotype,L.pack ",",_go_id,L.pack ",",_goname]
+attributeToGFF3Attribute (Field _fieldType _fieldValue) = L.concat [_fieldType,L.pack " \"",_fieldValue,L.pack "\""]
+attributeToGFF3Attribute (GOattribute _gotype _go_id _goname) = L.concat [L.pack "GO-Term \"",_gotype,L.pack ",",_go_id,L.pack ",",_goname,L.pack "\""]
 
 subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> GFF3Entry
 subFeatureToGFF3Entry gbkAccession subFeature = subFeatureGFF3
