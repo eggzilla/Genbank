@@ -9,7 +9,6 @@ module Biobase.Genbank.Tools (
 import Biobase.Genbank.Types
 import Data.Maybe
 --import Bio.Core.Sequence
-import Biobase.Fasta.Strict
 import Data.Int
 import qualified Data.ByteString.Lazy.Char8 as L
 

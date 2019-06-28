@@ -14,8 +14,9 @@ import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
 --import Bio.Core.Sequence
-
+import qualified Biobase.Types.BioSequence as BS
 import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Char8 as B
 
 --------------------------------------------------
 --Parsing functions:
@@ -205,12 +206,12 @@ geneAhead = lookAhead (string "     gene")
 
 repeatAhead = lookAhead (string "     repeat")
 
---origintoSeqData :: [String] -> SeqData
-origintoSeqData originInput = byteStringToMultiFasta (B.pack (concat originInput)) -- SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
+origintoSeqData :: [String] -> BS.BioSequence BS.DNA
+origintoSeqData originInput = BS.mkDNAseq (B.pack (concat originInput)) -- SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
 
-translationtoSeqData :: Maybe String -> Maybe SeqData
+translationtoSeqData :: Maybe String -> Maybe (BS.BioSequence BS.AA)
 translationtoSeqData translationInput 
-  | isJust translationInput = Just (SeqData (L.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
+  | isJust translationInput = Just (BS.mkAAseq (B.pack (filter (\aminoacid -> (aminoacid /=  '\n') && (aminoacid /=  ' ') ) (fromJust translationInput))))
   | otherwise = Nothing 
 
 genParserCoordinates :: GenParser Char st Coordinates
