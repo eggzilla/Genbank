@@ -3,7 +3,7 @@
 --   Genbank record sample: <http://www.ncbi.nlm.nih.gov/Sitemap/samplerecord.html>
 
 module Biobase.Genbank.Types where
-import Bio.Core.Sequence
+import Biobase.Fasta.Strict
 import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------
 --Generic parser types
@@ -30,7 +30,7 @@ data Genbank = Genbank
     comment :: Maybe L.ByteString,
     features :: [Feature],
     contig :: Maybe String,
-    origin :: SeqData
+    origin :: Fasta () ()
   }
   deriving (Show, Eq)
 
@@ -66,7 +66,7 @@ data SubFeature = SubFeature
      subFeatureType :: L.ByteString,
      subFeatureCoordinates :: CoordinateSet,
      subFeatureAttributes :: [Attribute],
-     subFeatureTranslation :: Maybe SeqData
+     subFeatureTranslation :: Maybe (Fasta () ())
   }
   deriving (Show, Eq)
 

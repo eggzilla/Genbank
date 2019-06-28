@@ -13,7 +13,8 @@ import Control.Monad
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
-import Bio.Core.Sequence
+--import Bio.Core.Sequence
+
 import qualified Data.ByteString.Lazy.Char8 as L
 
 --------------------------------------------------
@@ -204,8 +205,8 @@ geneAhead = lookAhead (string "     gene")
 
 repeatAhead = lookAhead (string "     repeat")
 
-origintoSeqData :: [String] -> SeqData
-origintoSeqData originInput = SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
+--origintoSeqData :: [String] -> SeqData
+origintoSeqData originInput = byteStringToMultiFasta (B.pack (concat originInput)) -- SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
 
 translationtoSeqData :: Maybe String -> Maybe SeqData
 translationtoSeqData translationInput 

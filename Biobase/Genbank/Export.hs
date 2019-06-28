@@ -8,9 +8,10 @@ import Biobase.Genbank.Types
 import Biobase.GFF3.Types
 import Biobase.GTF.Types
 import Data.Maybe
-import Bio.Core.Sequence
+--import Bio.Core.Sequence
 import Data.Int
-import Bio.Sequence.Fasta
+--import Bio.Sequence.Fasta
+import Biobase.Fasta.Strict
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Vector as V
