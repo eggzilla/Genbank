@@ -9,7 +9,10 @@ import Biobase.Genbank.Import
 import Biobase.Genbank.Export
 import Biobase.GFF3.Export
 import Data.Either.Unwrap
-
+import Biobase.Fasta.Strict
+import qualified Biobase.Types.BioSequence as BS
+import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.ByteString.Char8 as B
 main :: IO ()
 main = do
   args <- getArgs
@@ -20,9 +23,8 @@ main = do
     then do
       let rightInput = (fromRight parsedInput)
       let rawheader = L.unpack (accession rightInput)
-      let header = ">" + rawheader + "\n"
-      let gbkseqdata = show origin rightInput
-      let upperCaseSeq = map toUpper gbkseqdata
-      let seqLines = 
-      print gbkseqdata
+      let gbkheader = BS.SequenceIdentifier (B.pack rawheader)
+      let gbkseqdata = (origin rightInput)
+      let gbkfasta = Fasta gbkheader gbkseqdata
+      putStr (B.unpack (fastaToByteString 80 gbkfasta))
     else (print (fromLeft parsedInput))
