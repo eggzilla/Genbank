@@ -207,7 +207,7 @@ geneAhead = lookAhead (string "     gene")
 repeatAhead = lookAhead (string "     repeat")
 
 origintoSeqData :: [String] -> BS.BioSequence BS.DNA
-origintoSeqData originInput = BS.mkDNAseq (B.pack (concat originInput)) -- SeqData (L.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
+origintoSeqData originInput = BS.mkDNAseq (B.pack (filter (\nuc -> nuc /= '\n' && (nuc /= ' ')) (concat originInput)))
 
 translationtoSeqData :: Maybe String -> Maybe (BS.BioSequence BS.AA)
 translationtoSeqData translationInput 
