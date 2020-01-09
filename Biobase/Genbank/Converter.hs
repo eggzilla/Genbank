@@ -1,7 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveDataTypeable #-}
--- | Parser test script
---   read from file and directly print parsing output
+-- | Convert genbank to GFF3 format
 
 module Main where
 
@@ -15,22 +14,24 @@ import Data.Version (showVersion)
 
 data Options = Options
   { inputFilePath :: String,
+    inputAccession :: String,
     outputFilePath :: String
   } deriving (Show,Data,Typeable)
 
 options :: Options
 options = Options
   { inputFilePath = def &= name "i" &= help "Path to input fasta file",
+    inputAccession = def &= name "a" &= help "Accession to use in the output file",
     outputFilePath = def &= name "o" &= help "Path to output file"
   } &= summary ("Genbank converter " ++ genbankVersion) &= help "Florian Eggenhofer - 2019-2020" &= verbosity
 
 main :: IO ()
 main = do
   Options{..} <- cmdArgs options
-  parsedInput <- BGI.readGenbank inputFilePath
+  parsedInput <- BGI.readGenbankFeatures inputFilePath
   if isRight parsedInput
     then do
-      let gffoutput = show $ genbankToGFF3 (fromRight parsedInput)
+      let gffoutput = show $ genbankFeaturesToGFF3 inputAccession (fromRight parsedInput)
       writeFile outputFilePath gffoutput
     else (print (fromLeft parsedInput))
 

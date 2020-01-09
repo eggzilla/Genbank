@@ -7,10 +7,6 @@ module Biobase.Genbank.Tools (
                       ) where
 
 import Biobase.Genbank.Types
-import Data.Maybe
---import Bio.Core.Sequence
-import Data.Int
-import qualified Data.ByteString.Lazy.Char8 as L
 
 ---- | Extract nucleotide sequence data for all features of specified type, Nothing as specific feature extracts all feature sequence seqdatas
 --extractSpecificFeatureSeqData :: Maybe String -> Genbank -> [SeqData]
