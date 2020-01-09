@@ -2,19 +2,16 @@
 module Biobase.Genbank.Import (
                        parseGenbank,
                        readGenbank,
+                       parseGenbankFeatures,
+                       readGenbankFeatures,
                        module Biobase.Genbank.Types
                       ) where
 
 import Biobase.Genbank.Types
 import Text.ParserCombinators.Parsec
 import qualified Text.Parsec.Prim as TPP
---import Text.ParserCombinators.Parsec.Token
---import Text.ParserCombinators.Parsec.Language (emptyDef)    
 import Control.Monad
---import Data.List
---import Data.List.Split (splitOn)
 import Data.Maybe
---import Bio.Core.Sequence
 import qualified Biobase.Types.BioSequence as BS
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.ByteString.Char8 as B
@@ -69,6 +66,23 @@ genParserGenbank = do
   _ <- string "//"
   _ <- newline
   return $ Genbank (L.pack _locus) (readInt _length) (L.pack _moleculeType) (liftM L.pack _circular) (L.pack _division) (L.pack _creationDate) (L.pack _definition) (L.pack _accession) (L.pack _version) (L.pack _geneIdentifier) (liftM L.pack _dblink) (L.pack _keywords) (L.pack _source)  (L.pack _organism) _references (liftM L.pack _comment) _features _contig (origintoSeqData _origin) 
+
+-- | Parse the input as list of GenbankFeature datatype
+genParserGenbankFeatures :: GenParser Char st [Feature]
+genParserGenbankFeatures = do
+  _ <- manyTill anyChar (try (string "FEATURES"))
+  _ <- many1 space
+  _ <- string "Location/Qualifiers\n"
+  _ <- newline
+  _features <- many genParserFeature
+  _ <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
+  _ <- string "ORIGIN"
+  _ <- many (string " ")
+  _ <- newline
+  _ <- many1 genParserOriginSequence
+  _ <- string "//"
+  _ <- newline
+  return $ _features
 
 -- | Parse a feature
 genParserFeature :: GenParser Char st Feature
@@ -147,7 +161,15 @@ parseGenbank = parse genParserGenbank "genParserGenbank"
 
 -- | Read the file as Genbank datatype                     
 readGenbank :: String -> IO (Either ParseError Genbank)          
-readGenbank  = parseFromFile genParserGenbank 
+readGenbank  = parseFromFile genParserGenbank
+
+-- | Parse the input as Genbank datatype
+parseGenbankFeatures :: String -> Either ParseError [Feature]
+parseGenbankFeatures = parse genParserGenbankFeatures "genParserGenbank" 
+
+-- | Read the file as Genbank datatype                     
+readGenbankFeatures :: String -> IO (Either ParseError [Feature])          
+readGenbankFeatures = parseFromFile genParserGenbankFeatures
 
 -- | Parse a Field 
 genParserField :: String -> String -> GenParser Char st String
