@@ -72,7 +72,7 @@ genParserGenbankFeatures :: GenParser Char st [Feature]
 genParserGenbankFeatures = do
   _ <- manyTill anyChar (try (string "FEATURES"))
   _ <- many1 space
-  _ <- string "Location/Qualifiers\n"
+  _ <- string "Location/Qualifiers"
   _ <- newline
   _features <- many genParserFeature
   _ <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))

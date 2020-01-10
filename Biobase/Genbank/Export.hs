@@ -94,6 +94,6 @@ subFeatureToGFF3Entry gbkAccession _subFeature = subFeatureGFF3
         _start = coordinatesFrom . head . setCoordinates . subFeatureCoordinates $ _subFeature
         _stop = coordinatesTo . head . setCoordinates . subFeatureCoordinates $ _subFeature
         _score = L.pack "." 
-        _strand = if (complement . head . setCoordinates . subFeatureCoordinates $ _subFeature) then '+' else '-'
+        _strand = if (complement . head . setCoordinates . subFeatureCoordinates $ _subFeature) then '-' else '+'
         _phase = L.pack "."
         sfAttributes = V.fromList(map attributeToGFF3Attribute (subFeatureAttributes _subFeature))
