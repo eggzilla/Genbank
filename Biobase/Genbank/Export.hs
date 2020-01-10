@@ -10,6 +10,7 @@ import Biobase.GFF3.Types
 import Biobase.GTF.Types
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Vector as V
+import Data.Maybe
 
 
 --GTF
@@ -68,13 +69,34 @@ featureToGFF3Entry gbkAccession _feature = featureGFF3:subFeatureGFF3
   where featureGFF3 = GFF3Entry _seqId _source (featureType _feature) _start _stop _score _strand _phase fAttributes
         _seqId = gbkAccession
         _source = L.pack "."
-        _start = coordinatesFrom . head . setCoordinates . featureCoordinates $ _feature
-        _stop = coordinatesTo . head . setCoordinates . featureCoordinates $ _feature
+        (_start,_stop,_strand) = genbankFeatureCoordinatesToGFF3FeatureCoordinates (featureCoordinates _feature)
         _score = L.pack "."
-        _strand = if (complement . head . setCoordinates . featureCoordinates $ _feature) then '-' else '+'
         _phase = L.pack "."
         fAttributes = V.fromList(map attributeToGFF3Attribute (attributes _feature))
-        subFeatureGFF3 = map (subFeatureToGFF3Entry gbkAccession) (subFeatures _feature)
+        subFeatureGFF3 = concatMap (subFeatureToGFF3Entries gbkAccession) (subFeatures _feature)
+
+-- Genbank coordinates can be combined with operators defining the strand and connection between subfeatures
+-- Complement indicats reverse strand
+-- join indicates a set of subfeatures whose sequence should be concatenated
+-- order indicates a set of subfeatures who share some connection but the sequences can be treated independently
+-- more info: http://www.insdc.org/files/feature_table.html - 3.4.3 Location examples
+-- Convertion to gff3 for the features uses the min and max coordinates of all coordinates in the set
+-- Subfeatures are created for every entry in the coordinate list
+genbankFeatureCoordinatesToGFF3FeatureCoordinates :: CoordinateSet -> (Int,Int,Char)
+genbankFeatureCoordinatesToGFF3FeatureCoordinates cSet
+  | null (setCoordinates cSet) = error "Corrdinates have you must"
+  | isNothing (setType cSet) = (singleStart,singleStop,singleStrand)
+  | "join" == justcSet = (joinStart,joinStop,joinStrand)
+  | "order" == justcSet = (joinStart,joinStop,joinStrand)
+  | otherwise = error ("Illegal coordinate set type: " ++ justcSet)
+    where justcSet = fromJust (setType cSet)
+          singleCoordinates = head (setCoordinates cSet)
+          singleStart = coordinatesFrom singleCoordinates
+          singleStop = coordinatesTo singleCoordinates
+          singleStrand = if (complement singleCoordinates) then '-' else '+'
+          joinStart = minimum (map coordinatesFrom (setCoordinates cSet))
+          joinStop =  maximum (map coordinatesTo (setCoordinates cSet))
+          joinStrand = if (complement singleCoordinates) then '-' else '+'
 
 attributeToGFF3Attribute :: Attribute -> L.ByteString
 attributeToGFF3Attribute (Flag _flagType) = _flagType
@@ -86,14 +108,36 @@ attributeToGFF3Attribute (GOattribute _gotype _go_id _goname) = L.concat [L.pack
 --  | (L.unpack _fieldType) == "gene" = L.pack ("ID")
 --  | otherwise = _fieldType
 
-subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> GFF3Entry
-subFeatureToGFF3Entry gbkAccession _subFeature = subFeatureGFF3
+subFeatureToGFF3Entries :: L.ByteString -> SubFeature -> [GFF3Entry]
+subFeatureToGFF3Entries gbkAccession _subFeature
+  | null (setCoordinates cSet) = error "Corrdinates have you must"
+  | isNothing (setType cSet) = [subFeatureToGFF3Entry gbkAccession  _subFeature (head (setCoordinates cSet))]
+  | "join" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (setCoordinates cSet)
+  | "order" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (setCoordinates cSet)
+  | otherwise = error ("Illegal coordinate set type: " ++ justcSet)
+    where justcSet = fromJust (setType cSet)
+          cSet = subFeatureCoordinates $ _subFeature
+
+subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> Coordinates -> GFF3Entry
+subFeatureToGFF3Entry gbkAccession _subFeature sfCoordinates = subFeatureGFF3
   where subFeatureGFF3 = GFF3Entry _seqId _source (subFeatureType _subFeature) _start _stop _score _strand _phase sfAttributes
         _seqId = gbkAccession
         _source = L.pack "."                 
-        _start = coordinatesFrom . head . setCoordinates . subFeatureCoordinates $ _subFeature
-        _stop = coordinatesTo . head . setCoordinates . subFeatureCoordinates $ _subFeature
+        _start = coordinatesFrom $ sfCoordinates
+        _stop = coordinatesTo $ sfCoordinates
         _score = L.pack "." 
-        _strand = if (complement . head . setCoordinates . subFeatureCoordinates $ _subFeature) then '-' else '+'
+        _strand = if (complement $ sfCoordinates) then '-' else '+'
         _phase = L.pack "."
         sfAttributes = V.fromList(map attributeToGFF3Attribute (subFeatureAttributes _subFeature))
+
+--subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> GFF3Entry
+--subFeatureToGFF3Entry gbkAccession _subFeature = subFeatureGFF3
+--  where subFeatureGFF3 = GFF3Entry _seqId _source (subFeatureType _subFeature) _start _stop _score _strand _phase sfAttributes
+--        _seqId = gbkAccession
+--        _source = L.pack "."                 
+--        _start = coordinatesFrom . head . setCoordinates . subFeatureCoordinates $ _subFeature
+--        _stop = coordinatesTo . head . setCoordinates . subFeatureCoordinates $ _subFeature
+--        _score = L.pack "." 
+--        _strand = if (complement . head . setCoordinates . subFeatureCoordinates $ _subFeature) then '-' else '+'
+--        _phase = L.pack "."
+--        sfAttributes = V.fromList(map attributeToGFF3Attribute (subFeatureAttributes _subFeature))
