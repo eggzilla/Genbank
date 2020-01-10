@@ -1,5 +1,9 @@
 -*-change-log-*-
 
+### 2.0.1 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 10. January 2020
+
+	* Fixed parsing feature header
+
 ### 2.0.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 09. January 2020
 
 	* Improved parsing

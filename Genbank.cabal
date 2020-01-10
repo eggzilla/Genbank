@@ -1,5 +1,5 @@
 name:                Genbank
-version:             2.0.0
+version:             2.0.1
 synopsis:            Libary for processing the NCBI genbank format
 description:         Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
                      .
@@ -40,8 +40,8 @@ source-repository head
 
 source-repository this
   type:     git
-  location: https://github.com/eggzilla/Genbank/tree/2.0.0
-  tag:      2.0.0
+  location: https://github.com/eggzilla/Genbank/tree/2.0.1
+  tag:      2.0.1
 
 library
   -- Modules exported by the library.
