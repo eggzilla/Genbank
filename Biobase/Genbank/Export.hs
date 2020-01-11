@@ -11,6 +11,7 @@ import Biobase.GTF.Types
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Vector as V
 import Data.Maybe
+import Data.List
 
 
 --GTF
@@ -128,7 +129,23 @@ subFeatureToGFF3Entry gbkAccession _subFeature sfCoordinates = subFeatureGFF3
         _score = L.pack "." 
         _strand = if (complement $ sfCoordinates) then '-' else '+'
         _phase = L.pack "."
-        sfAttributes = V.fromList(map attributeToGFF3Attribute (subFeatureAttributes _subFeature))
+        -- attempt to find parent id, with gene_id, locus_tag, gene
+        parentId = setParentId (subFeatureAttributes _subFeature)
+        sfAttributes = V.fromList(map attributeToGFF3Attribute (parentId:(subFeatureAttributes _subFeature)))
+
+setParentId :: [Attribute] -> Attribute
+setParentId sfAttributes
+  | isJust geneIdField = Field (L.pack "Parent") (fieldValue (fromJust geneIdField))
+  | isJust locusTagField = Field (L.pack "Parent") (fieldValue (fromJust locusTagField))
+  | isJust geneField = Field (L.pack "Parent") (fieldValue (fromJust geneField))
+  | otherwise = Field (L.pack "Parent") (L.pack "Missing_in_gbk")
+  where geneIdField = find (\f -> fieldType f == L.pack "gene_id") (filter isField sfAttributes)
+        locusTagField = find (\f -> fieldType f == L.pack "locus_tag") (filter isField sfAttributes)
+        geneField = find (\f -> fieldType f == L.pack "gene") (filter isField sfAttributes)
+
+isField :: Attribute -> Bool
+isField (Field _ _) = True
+isField _ = False
 
 --subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> GFF3Entry
 --subFeatureToGFF3Entry gbkAccession _subFeature = subFeatureGFF3

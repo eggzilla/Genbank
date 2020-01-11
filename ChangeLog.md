@@ -1,4 +1,8 @@
 -*-change-log-*-
+### 2.2.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 11. January 2020
+
+	* Setting Parent id when exporting to GFF3
+
 ### 2.1.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 10. January 2020
 
 	* Fixed swapped strands when exporting to GFF3
