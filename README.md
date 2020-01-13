@@ -1,4 +1,4 @@
-#Genbank   
+# Genbank   
 [![Hackage](https://img.shields.io/hackage/v/Genbank.svg)](https://hackage.haskell.org/package/Genbank) [![Build Status](https://travis-ci.org/eggzilla/Genbank.svg?branch=master)](https://travis-ci.org/eggzilla/Genbank)
 =========
 
