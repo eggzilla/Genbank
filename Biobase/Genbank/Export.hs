@@ -12,6 +12,7 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Vector as V
 import Data.Maybe
 import Data.List
+import qualified Data.Char as C
 
 
 --GTF
@@ -73,8 +74,24 @@ featureToGFF3Entry gbkAccession _feature = featureGFF3:subFeatureGFF3
         (_start,_stop,_strand) = genbankFeatureCoordinatesToGFF3FeatureCoordinates (featureCoordinates _feature)
         _score = L.pack "."
         _phase = L.pack "."
-        fAttributes = V.fromList(map attributeToGFF3Attribute (attributes _feature))
+        idAttribute = setId (attributes _feature)
+        fAttributes = V.fromList(map attributeToGFF3Attribute (idAttribute:attributes _feature))
         subFeatureGFF3 = concatMap (subFeatureToGFF3Entries gbkAccession) (subFeatures _feature)
+
+setId :: [Attribute] -> Attribute
+setId fAttributes
+  | isJust idField = fromJust idField
+  | isJust geneField = Field (L.pack "ID") (fieldValue (fromJust geneField))
+  | isJust geneIdField = Field (L.pack "ID") (fieldValue (fromJust geneIdField))
+  | isJust locusTagField = Field (L.pack "ID") (fieldValue (fromJust locusTagField))
+  | isJust labelField = Field (L.pack "ID") (fieldValue (fromJust labelField))
+  | otherwise = Field (L.pack "Parent") (L.pack "Missing_in_gbk")
+  where idField = find (\f -> fieldType f == L.pack "ID") (filter isField fAttributes)
+        geneIdField = find (\f -> fieldType f == L.pack "gene_id") (filter isField fAttributes)
+        locusTagField = find (\f -> fieldType f == L.pack "locus_tag") (filter isField fAttributes)
+        geneField = find (\f -> fieldType f == L.pack "gene") (filter isField fAttributes)
+        labelField = find (\f -> fieldType f == L.pack "label") (filter isField fAttributes)
+
 
 -- Genbank coordinates can be combined with operators defining the strand and connection between subfeatures
 -- Complement indicats reverse strand
@@ -112,15 +129,18 @@ attributeToGFF3Attribute (GOattribute _gotype _go_id _goname) = L.concat [L.pack
 subFeatureToGFF3Entries :: L.ByteString -> SubFeature -> [GFF3Entry]
 subFeatureToGFF3Entries gbkAccession _subFeature
   | null (setCoordinates cSet) = error "Corrdinates have you must"
-  | isNothing (setType cSet) = [subFeatureToGFF3Entry gbkAccession  _subFeature (head (setCoordinates cSet))]
-  | "join" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (setCoordinates cSet)
-  | "order" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (setCoordinates cSet)
+  | isNothing (setType cSet) = [subFeatureToGFF3Entry gbkAccession  _subFeature (1,head (setCoordinates cSet))]
+  | "join" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (indexList (setCoordinates cSet))
+  | "order" == justcSet = map (subFeatureToGFF3Entry gbkAccession _subFeature) (indexList (setCoordinates cSet))
   | otherwise = error ("Illegal coordinate set type: " ++ justcSet)
     where justcSet = fromJust (setType cSet)
           cSet = subFeatureCoordinates $ _subFeature
 
-subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> Coordinates -> GFF3Entry
-subFeatureToGFF3Entry gbkAccession _subFeature sfCoordinates = subFeatureGFF3
+indexList :: [a] -> [(Int,a)]
+indexList inlist = zip [1..(length inlist)] inlist
+
+subFeatureToGFF3Entry :: L.ByteString -> SubFeature -> (Int,Coordinates) -> GFF3Entry
+subFeatureToGFF3Entry gbkAccession _subFeature (sfIndex,sfCoordinates) = subFeatureGFF3
   where subFeatureGFF3 = GFF3Entry _seqId _source (subFeatureType _subFeature) _start _stop _score _strand _phase sfAttributes
         _seqId = gbkAccession
         _source = L.pack "."                 
@@ -130,18 +150,23 @@ subFeatureToGFF3Entry gbkAccession _subFeature sfCoordinates = subFeatureGFF3
         _strand = if (complement $ sfCoordinates) then '-' else '+'
         _phase = L.pack "."
         -- attempt to find parent id, with gene_id, locus_tag, gene
-        parentId = setParentId (subFeatureAttributes _subFeature)
-        sfAttributes = V.fromList(map attributeToGFF3Attribute (parentId:(subFeatureAttributes _subFeature)))
+        parentId = setParentId (subFeatureType _subFeature) sfIndex (subFeatureAttributes _subFeature)
+        sfAttributes = V.fromList(map attributeToGFF3Attribute (parentId ++ (subFeatureAttributes _subFeature)))
 
-setParentId :: [Attribute] -> Attribute
-setParentId sfAttributes
-  | isJust geneIdField = Field (L.pack "Parent") (fieldValue (fromJust geneIdField))
-  | isJust locusTagField = Field (L.pack "Parent") (fieldValue (fromJust locusTagField))
-  | isJust geneField = Field (L.pack "Parent") (fieldValue (fromJust geneField))
-  | otherwise = Field (L.pack "Parent") (L.pack "Missing_in_gbk")
-  where geneIdField = find (\f -> fieldType f == L.pack "gene_id") (filter isField sfAttributes)
+setParentId :: L.ByteString -> Int -> [Attribute] -> [Attribute]
+setParentId sfType sfIndex sfAttributes
+  | isJust idField = [Field (L.pack "ID") ((L.map C.toLower sfType) `L.append` L.pack "_" `L.append` fieldValue (fromJust idField) `L.append` L.pack "_" `L.append` sfIndexBS),Field (L.pack "Parent") (fieldValue (fromJust idField))]
+  | isJust geneField = [Field (L.pack "ID") ((L.map C.toLower sfType) `L.append` L.pack "_" `L.append` fieldValue (fromJust geneField) `L.append` L.pack "_" `L.append` sfIndexBS),Field (L.pack "Parent") (fieldValue (fromJust geneField))]
+  | isJust geneIdField = [Field (L.pack "ID") ((L.map C.toLower sfType) `L.append` L.pack "_"   `L.append` fieldValue (fromJust geneIdField) `L.append` L.pack "_" `L.append` sfIndexBS),Field (L.pack "Parent") (fieldValue (fromJust geneIdField))]
+  | isJust locusTagField = [Field (L.pack "ID") ((L.map C.toLower sfType) `L.append` L.pack "_"   `L.append` fieldValue (fromJust locusTagField) `L.append` L.pack "_" `L.append` sfIndexBS),Field (L.pack "Parent") (fieldValue (fromJust locusTagField))]
+  | isJust labelField = [Field (L.pack "ID") ((L.map C.toLower sfType) `L.append` L.pack "_"   `L.append` fieldValue (fromJust labelField) `L.append` L.pack "_" `L.append` sfIndexBS),Field (L.pack "Parent") (fieldValue (fromJust labelField))]
+  | otherwise = [Field (L.pack "ID") (((L.map C.toLower sfType) `L.append` L.pack "_"  `L.append`  (L.pack "Missing_in_gbk"))),Field (L.pack "Parent") (L.pack "Missing_in_gbk")]
+  where idField = find (\f -> fieldType f == L.pack "ID") (filter isField sfAttributes)
+        geneIdField = find (\f -> fieldType f == L.pack "gene_id") (filter isField sfAttributes)
         locusTagField = find (\f -> fieldType f == L.pack "locus_tag") (filter isField sfAttributes)
         geneField = find (\f -> fieldType f == L.pack "gene") (filter isField sfAttributes)
+        labelField = find (\f -> fieldType f == L.pack "label") (filter isField sfAttributes)
+        sfIndexBS = L.pack . show $ sfIndex
 
 isField :: Attribute -> Bool
 isField (Field _ _) = True

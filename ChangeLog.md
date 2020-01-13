@@ -1,4 +1,11 @@
 -*-change-log-*-
+
+
+### 2.3.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 13. January 2020
+
+	* Automatically setting ID for each (sub)-feature
+	* Enumerating ids for sub features
+
 ### 2.2.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 11. January 2020
 
 	* Setting Parent id when exporting to GFF3
