@@ -67,6 +67,54 @@ genParserGenbank = do
   _ <- newline
   return $ Genbank (L.pack _locus) (readInt _length) (L.pack _moleculeType) (liftM L.pack _circular) (L.pack _division) (L.pack _creationDate) (L.pack _definition) (L.pack _accession) (L.pack _version) (L.pack _geneIdentifier) (liftM L.pack _dblink) (L.pack _keywords) (L.pack _source)  (L.pack _organism) _references (liftM L.pack _comment) _features _contig (origintoSeqData _origin) 
 
+-- Parsing by gene key
+
+-- | Parse the input as list of GenbankFeature datatype
+genParserGenbankByKeyFeatures :: GenParser Char st [GenericFeature]
+genParserGenbankByKeyFeatures = do
+  _ <- manyTill anyChar (try (string "FEATURES"))
+  _ <- many1 space
+  _ <- string "Location/Qualifiers"
+  _ <- newline
+  _features <- many genParserAllFeature
+  _ <- optionMaybe (try (genParserField "CONTIG" "ORIGIN"))
+  _ <- string "ORIGIN"
+  _ <- many (string " ")
+  _ <- newline
+  _ <- many1 genParserOriginSequence
+  _ <- string "//"
+  _ <- newline
+  return $ _features
+
+-- | Parse a feature
+genParserByKeyFeature :: GenParser Char st Feature
+genParserByKeyFeature = do
+  _ <- string "     "
+  _featureType <- choice [try (string "assembly_gap") , try (string "C_region"), try (string "source"), try (string "gene"), try (string "gene"), try (string "gene")]
+  _ <- many1 space
+  _genericFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
+  _attibutes <- many (try genParserAttributes)
+  _subFeatures <- many (try genParserSubFeature) 
+  _ <- choice [try geneAhead, try repeatAhead, try (lookAhead (string "CONTIG")), try (lookAhead (string "ORIGIN"))]
+  return $ Feature (L.pack _featureType) _genericFeatureCoordinates _attibutes _subFeatures
+
+
+-- | Parse a Subfeature
+genParserAllFeature :: GenParser Char st GenericFeature
+genParserAllFeature = do
+  _ <- string "     "
+  _ <- notFollowedBy (choice [try (string "assembly_gap"), string "gene", string "repeat_region", string "source"])
+  _gFeatureType <- many1 (noneOf " ")
+  _ <- many1 space
+  _gFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
+  _gAttibutes <- many (try genParserAttributes)
+  _gFeatureTranslation <- optionMaybe (try (parseStringField "translation"))
+  _ <- choice [try featureAhead, try (lookAhead (string "CONTIG")), try (lookAhead (string "ORIGIN"))]
+  return $ GenericFeature (L.pack _gFeatureType) _gFeatureCoordinates _gAttibutes (translationtoSeqData _gFeatureTranslation) []
+
+
+-- Parsing by sorting
+
 -- | Parse the input as list of GenbankFeature datatype
 genParserGenbankFeatures :: GenParser Char st [Feature]
 genParserGenbankFeatures = do
@@ -225,6 +273,15 @@ genParserReference = do
 --  _ <- many1 space
 --  _flag <- string ('/' : flagString)
 --  newline
+
+genParserFeatureStart :: GenParser Char st String
+genParserFeatureStart = do
+  _ <- string "     "
+  fType <- many1 (noneOf " ")
+  return fType
+
+featureAhead :: TPP.ParsecT [Char] u DFI.Identity String
+featureAhead = lookAhead genParserFeatureStart
 
 geneAhead :: TPP.ParsecT [Char] u DFI.Identity String
 geneAhead = lookAhead (string "     gene")

@@ -35,6 +35,16 @@ data Genbank = Genbank
   }
   deriving (Show, Eq)
 
+data GenericFeature = GenericFeature {
+     gFeatureType :: L.ByteString,
+     gFeatureCoordinates :: CoordinateSet,
+     gAttributes :: [Attribute],
+     gFeatureTranslation :: Maybe (BioSequence AA),
+     gSubFeatures :: [SubFeature]
+  }
+  deriving (Show, Eq)
+
+
 -- | Genbank Feature - e.g gene, repeat region
 data Feature = Feature {
      featureType :: L.ByteString,
