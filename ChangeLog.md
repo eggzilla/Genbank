@@ -1,5 +1,10 @@
 -*-change-log-*-
 
+### 2.4.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 22. January 2020
+
+	* Hierachical instead of sorting based parsing of features and subfeatures via key (-k)
+	* More resilient attribute parsing
+	* Small helper script to inject missing top level features in corrupted files
 
 ### 2.3.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 13. January 2020
 
