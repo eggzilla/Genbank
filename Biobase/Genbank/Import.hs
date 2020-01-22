@@ -4,6 +4,8 @@ module Biobase.Genbank.Import (
                        readGenbank,
                        parseGenbankFeatures,
                        readGenbankFeatures,
+                       parseGenbankHierachicalFeatures,
+                       readGenbankHierachicalFeatures,
                        module Biobase.Genbank.Types
                       ) where
 
@@ -16,7 +18,8 @@ import qualified Biobase.Types.BioSequence as BS
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Functor.Identity as DFI
-
+import Data.List
+import qualified Data.Map as M
 --------------------------------------------------
 --Parsing functions:
 
@@ -70,8 +73,8 @@ genParserGenbank = do
 -- Parsing by gene key
 
 -- | Parse the input as list of GenbankFeature datatype
-genParserGenbankByKeyFeatures :: GenParser Char st [GenericFeature]
-genParserGenbankByKeyFeatures = do
+genParserGenbankByKeyFeatures :: String -> GenParser Char st [Feature]
+genParserGenbankByKeyFeatures keyAttribute = do
   _ <- manyTill anyChar (try (string "FEATURES"))
   _ <- many1 space
   _ <- string "Location/Qualifiers"
@@ -84,26 +87,68 @@ genParserGenbankByKeyFeatures = do
   _ <- many1 genParserOriginSequence
   _ <- string "//"
   _ <- newline
-  return $ _features
+  return $ buildFeatureHierachyByKey keyAttribute _features
 
--- | Parse a feature
-genParserByKeyFeature :: GenParser Char st Feature
-genParserByKeyFeature = do
-  _ <- string "     "
-  _featureType <- choice [try (string "assembly_gap") , try (string "C_region"), try (string "source"), try (string "gene"), try (string "gene"), try (string "gene")]
-  _ <- many1 space
-  _genericFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
-  _attibutes <- many (try genParserAttributes)
-  _subFeatures <- many (try genParserSubFeature) 
-  _ <- choice [try geneAhead, try repeatAhead, try (lookAhead (string "CONTIG")), try (lookAhead (string "ORIGIN"))]
-  return $ Feature (L.pack _featureType) _genericFeatureCoordinates _attibutes _subFeatures
+buildFeatureHierachyByKey :: String -> [GenericFeature] -> [Feature] -- ([Feature],[GenericFeature])
+buildFeatureHierachyByKey keyAttribute _features = featuresWithSubFeatures
+  where --geneValues = nub (sort (map fieldValue featuresWithGeneValues))
+        (topLevelFeatures,currentSubFeatures) = partition isTopLevelFeatureType _features
+        --subFeaturesWithGeneValues = filter (\f -> fieldType f == L.pack "gene") (filter isField fAttributes)
+        subFeatureHashMap = constructSubFeatureGeneMap keyAttribute M.empty currentSubFeatures
+        featuresWithSubFeatures = map (constructFeatures keyAttribute subFeatureHashMap) topLevelFeatures
+
+constructSubFeatureGeneMap :: String -> M.Map L.ByteString [GenericFeature] -> [GenericFeature] -> M.Map L.ByteString [GenericFeature]
+constructSubFeatureGeneMap keyAttribute featureMap currentSubFeatures 
+  | null currentSubFeatures = featureMap
+  | otherwise = constructSubFeatureGeneMap keyAttribute updatedMap (tail currentSubFeatures) 
+    where currentFeature = head currentSubFeatures
+          maybeGeneKey = find (\f -> fieldType f == L.pack keyAttribute) (filter isField (gAttributes currentFeature))
+          geneKey = if isJust maybeGeneKey then (fieldValue (fromJust maybeGeneKey)) else error ("Feature" ++ show currentFeature)
+          updatedMap = updateGeneMap geneKey currentFeature featureMap
+  
+updateGeneMap :: L.ByteString -> GenericFeature -> M.Map L.ByteString [GenericFeature] -> M.Map L.ByteString [GenericFeature]
+updateGeneMap geneKey subFeature featureMap
+  | isJust oldValue = M.insert geneKey (subFeature:(fromJust oldValue)) featureMap
+  | otherwise = M.insert geneKey [subFeature] featureMap 
+    where oldValue = M.lookup geneKey featureMap
+
+isField :: Attribute -> Bool
+isField (Field _ _) = True
+isField _ = False
+
+--consume sub features from list(dict) output remaining subfeatures...
+constructFeatures :: String -> M.Map L.ByteString [GenericFeature] -> GenericFeature -> Feature
+constructFeatures keyAttribute subFeaturesMap topLevelFeature
+  | isJust geneAttribute = geneFeature
+  | otherwise = singleFeature
+    where geneAttribute = find (\f -> fieldType f == L.pack keyAttribute) (filter isField (gAttributes topLevelFeature))
+          geneKey = if isJust geneAttribute then fieldValue (fromJust geneAttribute) else error ("Feature" ++ show topLevelFeature)
+          maybeGeneKeySubFeatures = M.lookup geneKey subFeaturesMap
+          geneKeySubFeatures = if (isJust maybeGeneKeySubFeatures) then fromJust maybeGeneKeySubFeatures else []
+          geneFeature = Feature (gFeatureType topLevelFeature) (gFeatureCoordinates topLevelFeature) (gAttributes topLevelFeature) (map genericToSubFeature geneKeySubFeatures)
+          singleFeature = Feature (gFeatureType topLevelFeature) (gFeatureCoordinates topLevelFeature) (gAttributes topLevelFeature) []
+
+genericToSubFeature :: GenericFeature -> SubFeature
+genericToSubFeature gf = SubFeature (gFeatureType gf) (gFeatureCoordinates gf) (gAttributes gf) (gFeatureTranslation gf)
+
+isTopLevelFeatureType :: GenericFeature -> Bool
+isTopLevelFeatureType gFeature
+  | gType == L.pack("gene") = True
+  | gType == L.pack("assembly_gap") = True
+  | gType == L.pack("source") = True
+  | gType == L.pack("misc_feature") = True
+  | gType == L.pack("misc_binding") = True
+  | gType == L.pack("primer_bind") = True
+  | gType == L.pack("STS") = True
+  | otherwise = False
+    where gType = gFeatureType gFeature
 
 
 -- | Parse a Subfeature
 genParserAllFeature :: GenParser Char st GenericFeature
 genParserAllFeature = do
   _ <- string "     "
-  _ <- notFollowedBy (choice [try (string "assembly_gap"), string "gene", string "repeat_region", string "source"])
+  --_ <- notFollowedBy (choice [try (string "assembly_gap"), try (string "gene"), try (string "repeat_region"), try (string "source")])
   _gFeatureType <- many1 (noneOf " ")
   _ <- many1 space
   _gFeatureCoordinates <- choice [genParserCoordinatesSet "join", genParserCoordinatesSet "order"]
@@ -210,6 +255,15 @@ parseGenbank = parse genParserGenbank "genParserGenbank"
 -- | Read the file as Genbank datatype                     
 readGenbank :: String -> IO (Either ParseError Genbank)          
 readGenbank  = parseFromFile genParserGenbank
+
+-- | Parse the input as Genbank datatype
+parseGenbankHierachicalFeatures :: String -> String -> Either ParseError [Feature]
+parseGenbankHierachicalFeatures keyAttribute input = parse (genParserGenbankByKeyFeatures keyAttribute) "genParserGenbank" input
+
+-- | Read the file as Genbank datatype                     
+readGenbankHierachicalFeatures :: String -> String -> IO (Either ParseError [Feature])          
+readGenbankHierachicalFeatures keyAttribute inputFile = parseFromFile (genParserGenbankByKeyFeatures keyAttribute) inputFile
+
 
 -- | Parse the input as Genbank datatype
 parseGenbankFeatures :: String -> Either ParseError [Feature]

@@ -74,18 +74,18 @@ featureToGFF3Entry gbkAccession _feature = featureGFF3:subFeatureGFF3
         (_start,_stop,_strand) = genbankFeatureCoordinatesToGFF3FeatureCoordinates (featureCoordinates _feature)
         _score = L.pack "."
         _phase = L.pack "."
-        idAttribute = setId (attributes _feature)
+        idAttribute = setId (attributes _feature) (featureType _feature) _start _stop
         fAttributes = V.fromList(map attributeToGFF3Attribute (idAttribute:attributes _feature))
         subFeatureGFF3 = concatMap (subFeatureToGFF3Entries gbkAccession) (subFeatures _feature)
 
-setId :: [Attribute] -> Attribute
-setId fAttributes
+setId :: [Attribute] -> L.ByteString -> Int -> Int -> Attribute
+setId fAttributes fType fStart fStop
   | isJust idField = fromJust idField
   | isJust geneField = Field (L.pack "ID") (fieldValue (fromJust geneField))
   | isJust geneIdField = Field (L.pack "ID") (fieldValue (fromJust geneIdField))
   | isJust locusTagField = Field (L.pack "ID") (fieldValue (fromJust locusTagField))
   | isJust labelField = Field (L.pack "ID") (fieldValue (fromJust labelField))
-  | otherwise = Field (L.pack "Parent") (L.pack "Missing_in_gbk")
+  | otherwise = Field (L.pack "ID") (L.pack ((L.unpack fType) ++ "_" ++ show fStart ++ "_" ++ show fStop ++ "_notSet"))
   where idField = find (\f -> fieldType f == L.pack "ID") (filter isField fAttributes)
         geneIdField = find (\f -> fieldType f == L.pack "gene_id") (filter isField fAttributes)
         locusTagField = find (\f -> fieldType f == L.pack "locus_tag") (filter isField fAttributes)

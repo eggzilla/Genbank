@@ -15,6 +15,7 @@ import Data.Version (showVersion)
 data Options = Options
   { inputFilePath :: String,
     inputAccession :: String,
+    inputKeyAttribute :: String,
     outputFilePath :: String
   } deriving (Show,Data,Typeable)
 
@@ -22,13 +23,14 @@ options :: Options
 options = Options
   { inputFilePath = def &= name "i" &= help "Path to input fasta file",
     inputAccession = def &= name "a" &= help "Accession to use in the output file",
+    inputKeyAttribute = "gene" &= name "k" &= help "Attribute to use to construct feature hierachy e.g. gene or locus_tag, default: gene",
     outputFilePath = def &= name "o" &= help "Path to output file"
   } &= summary ("Genbank converter " ++ genbankVersion) &= help "Florian Eggenhofer - 2019-2020" &= verbosity
 
 main :: IO ()
 main = do
   Options{..} <- cmdArgs options
-  parsedInput <- BGI.readGenbankFeatures inputFilePath
+  parsedInput <- BGI.readGenbankHierachicalFeatures inputKeyAttribute inputFilePath
   if isRight parsedInput
     then do
       let gffoutput = show $ genbankFeaturesToGFF3 inputAccession (fromRight parsedInput)
