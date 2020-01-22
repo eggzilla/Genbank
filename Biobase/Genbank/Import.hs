@@ -191,7 +191,7 @@ genParserFeature = do
 
 -- | Parse a attribute, a GO attribute or a Flag
 genParserAttributes :: GenParser Char st Attribute
-genParserAttributes = choice [try genParserAttribute, try genParseGOattribute, try genParserFlagAttribute]
+genParserAttributes = choice [try genParserFlagAttribute, try genParserAttribute, try genParserAttribute2 ,try genParseGOattribute]
 
 -- | Parse a attribute, consisting of attribute designation and value
 genParserAttribute :: GenParser Char st Attribute
@@ -203,6 +203,18 @@ genParserAttribute = do
   _ <- string "=\""
   _stringField <- many1 (noneOf "\"")
   _ <- string "\""
+  _ <- newline
+  return $ Field (L.pack _fieldName) (L.pack (unwords. words $ (map replaceSeparationChar (filter (\ic -> ic /='\n') _stringField))))
+
+-- | Parse a single line attribute without quotes, consisting of attribute designation and value
+genParserAttribute2 :: GenParser Char st Attribute
+genParserAttribute2 = do
+  _ <- many1 space
+  _ <- string "/"
+  _ <- notFollowedBy (string "translation")
+  _fieldName <- many1 (noneOf "=")
+  _ <- string "="
+  _stringField <- many1 (noneOf "\n")
   _ <- newline
   return $ Field (L.pack _fieldName) (L.pack (unwords. words $ (map replaceSeparationChar (filter (\ic -> ic /='\n') _stringField))))
 
@@ -244,7 +256,7 @@ genParserFlagAttribute = do
   _ <- many1 space
   _ <- string "/"
   _ <- notFollowedBy (string "translation")
-  _flagType <- many1 (noneOf "\n")
+  _flagType <- many1 (noneOf "\n=")
   _ <- newline
   return $ Flag (L.pack _flagType)
 
