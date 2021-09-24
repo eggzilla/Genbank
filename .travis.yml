@@ -11,8 +11,8 @@ before_script:
 script:
   - docker create --name develcontainer devel
   - mkdir Genbank
-  - docker cp develcontainer:/source/dist-newstyle/build/x86_64-linux/ghc-9.0.1/Genbank-2.5.0/x/GenbankConverter/build/GenbankConverter/GenbankConverter Genbank
-  - docker cp develcontainer:/source/dist-newstyle/build/x86_64-linux/ghc-9.0.1/Genbank-2.5.0/x/GenbankSequenceExtractor/build/GenbankSequenceExtractor/GenbankSequenceExtractor Genbank
+  - docker cp develcontainer:/source/dist-newstyle/build/x86_64-linux/ghc-9.0.1/Genbank-2.5.1/x/GenbankConverter/build/GenbankConverter/GenbankConverter Genbank
+  - docker cp develcontainer:/source/dist-newstyle/build/x86_64-linux/ghc-9.0.1/Genbank-2.5.1/x/GenbankSequenceExtractor/build/GenbankSequenceExtractor/GenbankSequenceExtractor Genbank
   - cp LICENSE Genbank
   - tar -cvzf Genbank.tar.gz Genbank
 

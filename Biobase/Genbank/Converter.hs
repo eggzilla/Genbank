@@ -21,7 +21,7 @@ data Options = Options
 
 options :: Options
 options = Options
-  { inputFilePath = def &= name "i" &= help "Path to input fasta file",
+  { inputFilePath = def &= name "i" &= help "Path to input gbk file",
     inputAccession = def &= name "a" &= help "Accession to use in the output file",
     inputKeyAttribute = "gene" &= name "k" &= help "Attribute to use to construct feature hierachy e.g. gene or locus_tag, default: gene",
     outputFilePath = def &= name "o" &= help "Path to output file"

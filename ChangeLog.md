@@ -1,5 +1,9 @@
 -*-change-log-*-
 
+### 2.5.1 [Florian Eggenhofer](mailto:florian@eggenhofer.eu) 24. September 2021
+
+	* Fixed conversion tool doc
+
 ### 2.5.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 24. September 2021
 
 	* Compatiblity with GHC 9.0.1
