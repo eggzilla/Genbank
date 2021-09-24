@@ -1,5 +1,9 @@
 -*-change-log-*-
 
+### 2.5.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 24. September 2021
+
+	* Compatiblity with GHC 9.0.1
+
 ### 2.4.0 [Florian Eggenhofer](mailto:egg@cs.uni-freiburg.de) 22. January 2020
 
 	* Hierachical instead of sorting based parsing of features and subfeatures via key (-k)

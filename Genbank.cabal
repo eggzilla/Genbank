@@ -1,5 +1,5 @@
 name:                Genbank
-version:             2.4.0
+version:             2.5.0
 synopsis:            Libary for processing the NCBI genbank format
 description:         Haskell cabal Genbank libary contains tools, parser and datastructures for the NCBI (National Center for Biotechnology Information) Genbank format.
                      .
@@ -40,15 +40,15 @@ source-repository head
 
 source-repository this
   type:     git
-  location: https://github.com/eggzilla/Genbank/tree/2.4.0
-  tag:      2.4.0
+  location: https://github.com/eggzilla/Genbank/tree/2.5.0
+  tag:      2.5.0
 
 library
   -- Modules exported by the library.
   exposed-modules:   Biobase.Genbank.Import, Biobase.Genbank.Types, Biobase.Genbank.Tools, Biobase.Genbank.Export
   
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.5 && <5, parsec, split, bytestring, BiobaseEnsembl == 0.2.0.1, vector, BiobaseTypes == 0.2.0.*, BiobaseFasta == 0.3.0.*, containers
+  build-depends:       base >=4.5 && <5, parsec, split, bytestring, BiobaseEnsembl == 0.2.0.1, vector, BiobaseTypes == 0.2.1.*, BiobaseFasta == 0.4.0.*, containers
   ghc-options: -Wall -O2
   default-language:    Haskell2010
   -- Directories containing source files.
@@ -64,7 +64,7 @@ executable GenbankConverter
 
 executable GenbankSequenceExtractor
   main-is:          SequenceExtractor.hs
-  build-depends:    base >= 4 && <= 5, cmdargs, Genbank, BiobaseEnsembl, either-unwrap, BiobaseTypes == 0.2.0.*, BiobaseFasta == 0.3.0.*, bytestring, cmdargs
+  build-depends:    base >= 4 && <= 5, cmdargs, Genbank, BiobaseEnsembl, either-unwrap, BiobaseTypes == 0.2.1.*, BiobaseFasta == 0.4.0.*, bytestring, cmdargs
   ghc-options: -Wall -O2
   default-language:    Haskell2010
   other-modules:       Paths_Genbank
